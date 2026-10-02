@@ -99,7 +99,7 @@ footer a{color:var(--accent)}
 <div class="wrap">
   <header>
     <div class="eyebrow">Karbonfangst · Enova · avfallsforbrenning</div>
-    <h1>Hvor mye CCS får Enova-ramma plass til?</h1>
+    <h1>Hvor mye CCS får Enova-rammen plass til?</h1>
     <p class="lede">Regnestykket leses fra Topp100_CO2_2023.xlsx (kolonne F–L). Alle forutsetninger kan justeres, enkeltanlegg kan slås av og på, og du kan legge til anlegg fra topp 100-listen eller laste inn en oppdatert Excel-fil.</p>
   </header>
 
@@ -144,7 +144,7 @@ footer a{color:var(--accent)}
         <p class="hint">Brukes bare til utbetalingsprofilen</p>
       </div>
       <div class="field">
-        <label for="p-order">Prioritering innenfor ramma</label>
+        <label for="p-order">Prioritering innenfor rammen</label>
         <select id="p-order">
           <option value="desc">Største utslipp først</option>
           <option value="asc">Minste utslipp først</option>
@@ -157,15 +157,15 @@ footer a{color:var(--accent)}
     <main>
       <section class="kpis" aria-label="Hovedtall">
         <div class="kpi"><span class="eyebrow">Støttebehov</span><span class="v" id="k-need"></span><span class="u">mrd NOK over hele støtteperioden</span></div>
-        <div class="kpi" id="kpi-rest"><span class="eyebrow" id="k-rest-l">Til overs</span><span class="v" id="k-rest"></span><span class="u">mrd NOK mot ramma</span></div>
+        <div class="kpi" id="kpi-rest"><span class="eyebrow" id="k-rest-l">Til overs</span><span class="v" id="k-rest"></span><span class="u">mrd NOK mot rammen</span></div>
         <div class="kpi"><span class="eyebrow">Fanget CO₂</span><span class="v" id="k-cap"></span><span class="u" id="k-cap-u"></span></div>
-        <div class="kpi"><span class="eyebrow">Ramma rekker til</span><span class="v" id="k-max"></span><span class="u">tonn CO₂ per år med støtte</span></div>
+        <div class="kpi"><span class="eyebrow">Rammen rekker til</span><span class="v" id="k-max"></span><span class="u">tonn CO₂ per år med støtte</span></div>
       </section>
 
       <section class="panel chart">
-        <div class="sectionhead"><h2>Støttebehov per anlegg mot ramma</h2><span class="status" id="fitline"></span></div>
+        <div class="sectionhead"><h2>Støttebehov per anlegg mot rammen</h2><span class="status" id="fitline"></span></div>
         <div id="barchart"></div>
-        <div class="legend"><span><i style="background:var(--accent)"></i>Innenfor ramma</span><span><i style="background:var(--bad)"></i>Utenfor ramma</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Innenfor rammen</span><span><i style="background:var(--bad)"></i>Utenfor rammen</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
       </section>
 
       <section class="panel">
@@ -365,7 +365,7 @@ function render(){
 function drawBar(R){
   const W=1000,H=96,pad=10,top=26,bh=36;
   const max=Math.max(R.B,R.need)*1.04||1, x=v=>pad+(W-2*pad)*v/max;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Støttebehov per anlegg stablet mot ramma">`;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Støttebehov per anlegg stablet mot rammen">`;
   let acc=0;
   R.ordered.forEach((r,i)=>{
     const x0=x(acc), x1=x(acc+r.need);
@@ -427,16 +427,16 @@ function writeFindings(R,rest,maxT){
   const L=[];
   const be=R.basisT*S.years>0?R.B/(R.basisT*S.years):0;
   L.push(`Med ${nf0.format(S.price)} kr/tonn i ${S.years} år trenger de ${R.ordered.length} valgte anleggene <b>${mrd(R.need)} mrd kr</b>. Det er ${rest>=0?`<b>${mrd(rest)} mrd til overs</b>`:`<b>${mrd(-rest)} mrd for lite</b>`} i en ramme på ${nf1.format(S.budget)} mrd.`);
-  L.push(`Ramma går akkurat opp ved en gjennomsnittlig budpris på <b>${nf0.format(be)} kr/tonn</b>. Høyere bud enn det betyr at minst ett anlegg faller utenfor.`);
+  L.push(`Rammen går akkurat opp ved en gjennomsnittlig budpris på <b>${nf0.format(be)} kr/tonn</b>. Høyere bud enn det betyr at minst ett anlegg faller utenfor.`);
   if(S.basis==='all'&&R.captured>0){
     const bioShare=1-R.fosCap/R.captured, perFos=R.need/(R.fosCap*S.years);
     L.push(`<b>${nf0.format(bioShare*100)} % av tonnene Enova betaler for er biogene.</b> De gir negative utslipp, men reduserer ikke de fossile utslippene. Regnet per tonn fossil CO₂ fjernet blir prisen ${nf0.format(perFos)} kr/tonn. Om fossil andel i avfallet er lavere enn antatt, øker støttebehovet, fordi det samme fossile tallet da betyr mer total CO₂ å fange.`);
   } else if(S.basis==='fossil'){
     L.push(`Når bare den fossile delen får budpris, betaler ikke Enova for de ${nf0.format((R.captured-R.fosCap)/1000)} kt biogen CO₂ som også fanges. Anleggene må da finne annen betaling for negative utslipp, for eksempel et marked for karbonfjerning, ellers blir prosjektene svakere.`);
   }
-  L.push(`Ramma tilsvarer om lag <b>${nf0.format(maxT/1000)} kt fanget CO₂ per år</b> i ${S.years} år. De valgte anleggene fanger ${nf0.format(R.captured/1000)} kt per år.`);
+  L.push(`Rammen tilsvarer om lag <b>${nf0.format(maxT/1000)} kt fanget CO₂ per år</b> i ${S.years} år. De valgte anleggene fanger ${nf0.format(R.captured/1000)} kt per år.`);
   if(R.inWindow!=null){
-    L.push(`Med oppstart i ${S.start} utbetales <b>${mrd(R.inWindow)} mrd</b> i perioden ${data.win[0]}–${data.win[1]}, resten senere. Om ramma er en tilsagnsramme (hele kontrakten forpliktes i perioden), gjelder sammenligningen over. Om den er en utbetalingsramme, er det langt mer rom, men da trengs nye bevilgninger etter ${data.win[1]}.`);
+    L.push(`Med oppstart i ${S.start} utbetales <b>${mrd(R.inWindow)} mrd</b> i perioden ${data.win[0]}–${data.win[1]}, resten senere. Om rammen er en tilsagnsramme (hele kontrakten forpliktes i perioden), gjelder sammenligningen over. Om den er en utbetalingsramme, er det langt mer rom, men da trengs nye bevilgninger etter ${data.win[1]}.`);
   }
   $('findings').innerHTML=L.map(x=>`<li>${x}</li>`).join('');
 }
