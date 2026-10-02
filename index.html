@@ -74,6 +74,8 @@ td.name small{display:block;color:var(--muted);font-size:.75rem}
 tr.off td{opacity:.45}
 tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--ink)}
 td input[type=number]{width:62px;text-align:right}
+td input.own{border-color:var(--accent);color:var(--accent);font-weight:500}
+td input[id^=pr-]{width:72px}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:1px 7px;border-radius:99px;border:1px solid}
 .pill.in{color:var(--ok);border-color:var(--ok)}
 .pill.part{color:var(--warn);border-color:var(--warn)}
@@ -109,7 +111,7 @@ footer a{color:var(--accent)}
       <div class="field">
         <label for="p-price">Budpris <span class="src" id="s-price"></span></label>
         <div class="row"><input type="range" id="r-price" min="500" max="4000" step="50"><input type="number" id="p-price" step="50"></div>
-        <p class="hint">NOK per tonn CO₂ fanget og lagret</p>
+        <p class="hint">NOK per tonn CO₂ fanget og lagret. Kan overstyres per anlegg i tabellen.</p>
       </div>
       <div class="field">
         <label for="p-fossil">Fossil andel i avfallet <span class="src" id="s-fossil"></span></label>
@@ -173,7 +175,7 @@ footer a{color:var(--accent)}
         <div class="tablewrap">
           <table id="tbl">
             <thead><tr>
-              <th></th><th>Anlegg</th><th>Fossilt 2023</th><th>Fossil andel %</th><th>Totalt</th><th>Biogent</th><th>Fanget</th><th>Støttebehov mrd</th><th>Kumulativt mrd</th><th>Status</th><th></th>
+              <th></th><th>Anlegg</th><th>Fossilt 2023</th><th>Fossil andel %</th><th>Budpris kr/t</th><th>Totalt</th><th>Biogent</th><th>Fanget</th><th>Støttebehov mrd</th><th>Kumulativt mrd</th><th>Status</th><th></th>
             </tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
@@ -199,7 +201,7 @@ footer a{color:var(--accent)}
       </section>
 
       <section class="panel">
-        <div class="sectionhead"><h2>Følsomhet: til overs eller mangler (mrd NOK)</h2><span class="hint">Budpris mot fossil andel, øvrige forutsetninger som valgt</span></div>
+        <div class="sectionhead"><h2>Følsomhet: til overs eller mangler (mrd NOK)</h2><span class="hint">Felles budpris mot fossil andel. Anlegg med egen budpris beholder den.</span></div>
         <div class="tablewrap"><table class="sens" id="sens"></table></div>
       </section>
 
@@ -314,8 +316,9 @@ function compute(st){
     const fs=(p.fs??(p.sector==='Avfall'?st.fossil:100))/100;
     const total=fs>0?p.fossil/fs:0, bio=total-p.fossil, captured=total*cap, fosCap=p.fossil*cap;
     const basisT=st.basis==='all'?captured:fosCap;
-    const annual=basisT*st.price, need=annual*st.years;
-    return {...p,fsPct:fs*100,total,bio,captured,fosCap,basisT,annual,need,idx:i};
+    const price=p.pr??st.price;
+    const annual=basisT*price, need=annual*st.years;
+    return {...p,fsPct:fs*100,price,total,bio,captured,fosCap,basisT,annual,need,idx:i};
   });
   const on=rows.filter(r=>r.on);
   const ordered=[...on].sort((a,b)=>st.order==='file'?a.idx-b.idx:st.order==='asc'?a.fossil-b.fossil:b.fossil-a.fossil);
@@ -335,7 +338,8 @@ function render(){
   $('kpi-rest').className='kpi '+(rest>=0?'ok':'bad');
   $('k-cap').textContent=nf0.format(R.captured/1000)+' kt';
   $('k-cap-u').textContent='per år, hvorav '+nf0.format(R.fosCap/1000)+' kt fossilt';
-  const maxT=S.price*S.years>0?R.B/(S.price*S.years):0;
+  R.avgPrice=R.basisT>0?R.annual/R.basisT:S.price;
+  const maxT=R.avgPrice*S.years>0?R.B/(R.avgPrice*S.years):0;
   $('k-max').textContent=nf0.format(maxT/1000)+' kt';
 
   // tabell
@@ -347,6 +351,7 @@ function render(){
       <td class="name">${esc(r.name)}<small>${esc(r.sector)}${r.fromFile?' · celle '+r.ref:' · lagt til fra topp 100'}</small></td>
       <td class="num">${nf0.format(r.fossil)}</td>
       <td><input type="number" id="fs-${r.id}" min="1" max="100" step="1" value="${Math.round(r.fsPct)}" aria-label="Fossil andel for ${esc(r.name)}"></td>
+      <td><input type="number" class="${r.pr!=null?'own':''}" id="pr-${r.id}" min="0" step="50" value="${Math.round(r.price)}" title="${r.pr!=null?'Egen budpris. Tøm feltet for å følge felles budpris.':'Følger felles budpris'}" aria-label="Budpris for ${esc(r.name)}"></td>
       <td class="num">${nf0.format(r.total)}</td>
       <td class="num">${nf0.format(r.bio)}</td>
       <td class="num">${nf0.format(r.captured)}</td>
@@ -356,7 +361,7 @@ function render(){
       <td>${r.fromFile?'':`<button class="xbtn" id="rm-${r.id}" aria-label="Fjern ${esc(r.name)}">×</button>`}</td>`;
     tb.appendChild(tr);
   }
-  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td><td></td><td></td></tr>`;
+  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td></td><td class="num">${nf0.format(R.avgPrice)}</td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td><td></td><td></td></tr>`;
 
   drawBar(R); drawPay(R); drawSens(); writeFindings(R,rest,maxT);
   fillAdd();
@@ -426,7 +431,7 @@ function drawSens(){
 function writeFindings(R,rest,maxT){
   const L=[];
   const be=R.basisT*S.years>0?R.B/(R.basisT*S.years):0;
-  L.push(`Med ${nf0.format(S.price)} kr/tonn i ${S.years} år trenger de ${R.ordered.length} valgte anleggene <b>${mrd(R.need)} mrd kr</b>. Det er ${rest>=0?`<b>${mrd(rest)} mrd til overs</b>`:`<b>${mrd(-rest)} mrd for lite</b>`} i en ramme på ${nf1.format(S.budget)} mrd.`);
+  L.push(`Med ${S.plants.some(p=>p.on&&p.pr!=null)?'en gjennomsnittlig budpris på '+nf0.format(R.avgPrice):nf0.format(S.price)} kr/tonn i ${S.years} år trenger de ${R.ordered.length} valgte anleggene <b>${mrd(R.need)} mrd kr</b>. Det er ${rest>=0?`<b>${mrd(rest)} mrd til overs</b>`:`<b>${mrd(-rest)} mrd for lite</b>`} i en ramme på ${nf1.format(S.budget)} mrd.`);
   L.push(`Rammen går akkurat opp ved en gjennomsnittlig budpris på <b>${nf0.format(be)} kr/tonn</b>. Høyere bud enn det betyr at minst ett anlegg faller utenfor.`);
   if(S.basis==='all'&&R.captured>0){
     const bioShare=1-R.fosCap/R.captured, perFos=R.need/(R.fosCap*S.years);
@@ -461,6 +466,7 @@ $('reset').addEventListener('click',()=>{const keep=S.plants.filter(p=>!p.fromFi
 $('tbl').addEventListener('change',e=>{
   const id=e.target.id;
   if(id.startsWith('on-')){ const p=S.plants.find(p=>p.id===id.slice(3)); p.on=e.target.checked; render(); }
+  if(id.startsWith('pr-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.pr=(isNaN(v)||v===S.price)?null:Math.max(0,v); render(); }
   if(id.startsWith('fs-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.fs=isNaN(v)?null:Math.min(100,Math.max(1,v)); render(); }
 });
 $('tbl').addEventListener('click',e=>{ const b=e.target.closest('button.xbtn'); if(!b)return; S.plants=S.plants.filter(p=>p.id!==b.id.slice(3)); render(); });
