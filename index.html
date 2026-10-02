@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enova CCS-regnestykket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: parameter-panel til venstre (sticky på desktop), resultat og anleggstabell til høyre; én kolonne på mobil */
+:root{
+  --bg:#eef1ef; --surface:#ffffff; --ink:#1a2224; --muted:#5a6765; --line:#d3dad7;
+  --accent:#0e5a62; --accent-soft:#d5e7e8; --bio:#a86a14; --bio-soft:#f3e4cc;
+  --ok:#2b7a4b; --warn:#a86a14; --bad:#b1382b; --bad-soft:#f6dcd8; --window:#e2ece9;
+  --f-display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111517; --surface:#192022; --ink:#e3e8e6; --muted:#97a3a0; --line:#2b3537;
+  --accent:#53b4bc; --accent-soft:#1d3a3d; --bio:#e2a54e; --bio-soft:#3b2f1c;
+  --ok:#62c08a; --warn:#e2a54e; --bad:#e8786a; --bad-soft:#3e2420; --window:#1d2a2a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111517; --surface:#192022; --ink:#e3e8e6; --muted:#97a3a0; --line:#2b3537;
+  --accent:#53b4bc; --accent-soft:#1d3a3d; --bio:#e2a54e; --bio-soft:#3b2f1c;
+  --ok:#62c08a; --warn:#e2a54e; --bad:#e8786a; --bad-soft:#3e2420; --window:#1d2a2a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.1rem;font-weight:700}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+aside.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:860px){aside.panel{position:static}}
+main{display:flex;flex-direction:column;gap:20px;min-width:0}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-weight:600;font-size:.9rem;display:flex;justify-content:space-between;gap:8px}
+.field label .src{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);font-weight:400}
+.field .row{display:flex;gap:8px;align-items:center}
+input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.9rem;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;min-width:0}
+.field input[type=number]{width:96px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.8rem;color:var(--muted);margin:0}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-size:.85rem;padding:6px 4px;background:transparent;color:var(--ink);border:0;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--surface)}
+button.btn{font:inherit;font-weight:600;font-size:.88rem;padding:7px 12px;border-radius:4px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer}
+button.btn:hover{background:var(--accent-soft)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .v{font-family:var(--f-display);font-weight:800;font-size:1.65rem;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .u{font-size:.82rem;color:var(--muted)}
+.kpi.bad .v{color:var(--bad)} .kpi.ok .v{color:var(--ok)}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tablewrap{overflow-x:auto;margin-inline:-18px;padding-inline:18px}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:760px}
+th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;vertical-align:bottom}
+td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
+td.name{white-space:normal;min-width:180px}
+td.name small{display:block;color:var(--muted);font-size:.75rem}
+tr.off td{opacity:.45}
+tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--ink)}
+td input[type=number]{width:62px;text-align:right}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:1px 7px;border-radius:99px;border:1px solid}
+.pill.in{color:var(--ok);border-color:var(--ok)}
+.pill.part{color:var(--warn);border-color:var(--warn)}
+.pill.out{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
+.xbtn{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px}
+.findings{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;max-width:75ch}
+.findings b{font-weight:600}
+.addrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.addrow select{flex:1;min-width:0;max-width:100%}
+.sens td,.sens th{text-align:right;min-width:0}
+.sens{min-width:480px}
+.sens td.cur{outline:2px solid var(--accent);outline-offset:-2px}
+.sens td.neg{color:var(--bad)} .sens td.pos{color:var(--ok)}
+.status{font-size:.82rem;color:var(--muted)}
+.status.err{color:var(--bad)}
+.sectionhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+footer{font-size:.8rem;color:var(--muted);max-width:80ch}
+footer a{color:var(--accent)}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Karbonfangst · Enova · avfallsforbrenning</div>
+    <h1>Hvor mye CCS får Enova-ramma plass til?</h1>
+    <p class="lede">Regnestykket leses fra Topp100_CO2_2023.xlsx (kolonne F–L). Alle forutsetninger kan justeres, enkeltanlegg kan slås av og på, og du kan legge til anlegg fra topp 100-listen eller laste inn en oppdatert Excel-fil.</p>
+  </header>
+
+  <div class="grid">
+    <aside class="panel" aria-label="Forutsetninger">
+      <h2>Forutsetninger</h2>
+      <div class="field">
+        <label for="p-price">Budpris <span class="src" id="s-price"></span></label>
+        <div class="row"><input type="range" id="r-price" min="500" max="4000" step="50"><input type="number" id="p-price" step="50"></div>
+        <p class="hint">NOK per tonn CO₂ fanget og lagret</p>
+      </div>
+      <div class="field">
+        <label for="p-fossil">Fossil andel i avfallet <span class="src" id="s-fossil"></span></label>
+        <div class="row"><input type="range" id="r-fossil" min="20" max="80" step="1"><input type="number" id="p-fossil" step="1"></div>
+        <p class="hint">Prosent. Kan overstyres per anlegg i tabellen.</p>
+      </div>
+      <div class="field">
+        <label for="p-capture">Fangstgrad <span class="src" id="s-capture"></span></label>
+        <div class="row"><input type="range" id="r-capture" min="50" max="99" step="1"><input type="number" id="p-capture" step="1"></div>
+        <p class="hint">Prosent av all CO₂ i røykgassen</p>
+      </div>
+      <div class="field">
+        <label for="p-years">År med driftsstøtte <span class="src" id="s-years"></span></label>
+        <div class="row"><input type="range" id="r-years" min="1" max="20" step="1"><input type="number" id="p-years" step="1"></div>
+      </div>
+      <div class="field">
+        <label for="p-budget">Enova-ramme <span class="src" id="s-budget"></span></label>
+        <div class="row"><input type="range" id="r-budget" min="0" max="50" step="0.5"><input type="number" id="p-budget" step="0.5"></div>
+        <p class="hint">Milliarder NOK, <span id="windowtxt"></span></p>
+      </div>
+      <div class="field">
+        <label>Hvilke tonn får budpris?</label>
+        <div class="seg" role="group" aria-label="Støttegrunnlag">
+          <button type="button" id="b-all" aria-pressed="true">All fanget CO₂</button>
+          <button type="button" id="b-fos" aria-pressed="false">Bare fossil del</button>
+        </div>
+        <p class="hint">Excel-arket betaler for all fanget CO₂, også den biogene.</p>
+      </div>
+      <div class="field">
+        <label for="p-start">Første driftsår <span class="src">antakelse</span></label>
+        <div class="row"><input type="range" id="r-start" min="2027" max="2035" step="1"><input type="number" id="p-start" step="1"></div>
+        <p class="hint">Brukes bare til utbetalingsprofilen</p>
+      </div>
+      <div class="field">
+        <label for="p-order">Prioritering innenfor ramma</label>
+        <select id="p-order">
+          <option value="desc">Største utslipp først</option>
+          <option value="asc">Minste utslipp først</option>
+          <option value="file">Rekkefølgen i filen</option>
+        </select>
+      </div>
+      <button type="button" class="btn" id="reset">Tilbake til verdiene i filen</button>
+    </aside>
+
+    <main>
+      <section class="kpis" aria-label="Hovedtall">
+        <div class="kpi"><span class="eyebrow">Støttebehov</span><span class="v" id="k-need"></span><span class="u">mrd NOK over hele støtteperioden</span></div>
+        <div class="kpi" id="kpi-rest"><span class="eyebrow" id="k-rest-l">Til overs</span><span class="v" id="k-rest"></span><span class="u">mrd NOK mot ramma</span></div>
+        <div class="kpi"><span class="eyebrow">Fanget CO₂</span><span class="v" id="k-cap"></span><span class="u" id="k-cap-u"></span></div>
+        <div class="kpi"><span class="eyebrow">Ramma rekker til</span><span class="v" id="k-max"></span><span class="u">tonn CO₂ per år med støtte</span></div>
+      </section>
+
+      <section class="panel chart">
+        <div class="sectionhead"><h2>Støttebehov per anlegg mot ramma</h2><span class="status" id="fitline"></span></div>
+        <div id="barchart"></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Innenfor ramma</span><span><i style="background:var(--bad)"></i>Utenfor ramma</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
+      </section>
+
+      <section class="panel">
+        <div class="sectionhead"><h2>Anlegg</h2><span class="hint">Tonn per år. Klikk avkrysning for å ta anlegg ut.</span></div>
+        <div class="tablewrap">
+          <table id="tbl">
+            <thead><tr>
+              <th></th><th>Anlegg</th><th>Fossilt 2023</th><th>Fossil andel %</th><th>Totalt</th><th>Biogent</th><th>Fanget</th><th>Støttebehov mrd</th><th>Kumulativt mrd</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+          </table>
+        </div>
+        <div class="addrow">
+          <label for="addsel" class="hint">Legg til fra topp 100:</label>
+          <select id="addsel"></select>
+          <button type="button" class="btn" id="addbtn">Legg til</button>
+        </div>
+        <p class="hint">Anlegg utenfor avfallssektoren legges inn med 100 % fossil andel. Juster i tabellen ved behov, for eksempel for anlegg med biomasse eller prosessutslipp.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Hva tallene sier</h2>
+        <ul class="findings" id="findings"></ul>
+      </section>
+
+      <section class="panel chart">
+        <div class="sectionhead"><h2>Utbetalinger per år</h2><span class="status" id="payline"></span></div>
+        <div id="paychart"></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Utbetaling innenfor rammeperioden</span><span><i style="background:var(--muted)"></i>Utbetaling etter perioden</span></div>
+      </section>
+
+      <section class="panel">
+        <div class="sectionhead"><h2>Følsomhet: til overs eller mangler (mrd NOK)</h2><span class="hint">Budpris mot fossil andel, øvrige forutsetninger som valgt</span></div>
+        <div class="tablewrap"><table class="sens" id="sens"></table></div>
+      </section>
+
+      <section class="panel">
+        <h2>Oppdatere data</h2>
+        <p class="hint" style="max-width:70ch">Last inn en ny versjon av Excel-filen. Verktøyet finner tallene etter etikettene i arket (Anlegg, Fossile utslipp, Fossil andel, Fangstgrad, Budpris, Antall år driftsstøtte, Total ramme og Utslipper), ikke etter celleadresse. Rader kan derfor flyttes og anlegg legges til, så lenge etikettene står der.</p>
+        <div class="addrow"><input type="file" id="file" accept=".xlsx,.xls"></div>
+        <p class="status" id="loadstatus"></p>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    Kilder fra arket: utslippstall fra <a href="https://www.norskeutslipp.no" target="_blank" rel="noopener">norskeutslipp.no</a> (Miljødirektoratet), budpris fra <a href="https://info.enova.no/hubfs/Karbonfangst/H%C3%B8ringsnotat.pdf?hsLang=no" target="_blank" rel="noopener">Enovas høringsnotat</a>, fordeling fossilt/bio fra <a href="https://www.sirknorge.no/nyheter/derfor-satser-norge-pa-karbonfangst-pa-avfallsforbrenning" target="_blank" rel="noopener">Sirk Norge</a>. Klemetsrud er allerede finansiert og er ikke med. Beløpene er nominelle og ikke neddiskontert.
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const EMBEDDED_XLSX = "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";
+const EMBEDDED_NAME = "Topp100_CO2_2023.xlsx";
+
+const nf0 = new Intl.NumberFormat('nb-NO',{maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat('nb-NO',{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat('nb-NO',{minimumFractionDigits:2,maximumFractionDigits:2});
+const mrd = v => nf2.format(v/1e9);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+
+/* ---------- Lesing av arbeidsbok (etikettbasert) ---------- */
+function parseWorkbook(wb){
+  const warnings=[];
+  let grid=null, sheetName=null;
+  for(const n of wb.SheetNames){
+    const g=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:null});
+    if(g.some(r=>r.some(v=>typeof v==='string'&&/^\s*anlegg\s*$/i.test(v)))){grid=g;sheetName=n;break;}
+  }
+  if(!grid){ grid=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:null}); sheetName=wb.SheetNames[0]; warnings.push('Fant ikke etiketten «Anlegg».'); }
+  const str = v => typeof v==='string'?v.trim():'';
+  const find = re => { for(let r=0;r<grid.length;r++){const row=grid[r]||[];for(let c=0;c<row.length;c++){if(re.test(str(row[c])))return {r,c,text:str(row[c])};}} return null; };
+  const numRight = pos => { if(!pos)return null; const row=grid[pos.r]; for(let c=pos.c+1;c<row.length;c++){ if(typeof row[c]==='number')return row[c]; } return null; };
+  const param=(re,label)=>{const p=find(re);const v=numRight(p);if(v==null)warnings.push('Fant ikke '+label+'.');return {v,pos:p};};
+
+  const fossil=param(/^fossil\s*andel/i,'«Fossil andel»');
+  const capture=param(/^fangstgrad/i,'«Fangstgrad»');
+  const price=param(/^budpris/i,'«Budpris»');
+  const years=param(/antall\s*år/i,'«Antall år driftsstøtte»');
+  const budget=param(/^total\s*ramme/i,'«Total ramme»');
+  let win=[2027,2032];
+  if(budget.pos){const m=budget.pos.text.match(/(20\d\d)\s*[-–]\s*(20\d\d)/); if(m) win=[+m[1],+m[2]];}
+
+  const cell = (r,c)=>{ return c==null?'':(grid[r]||[])[c]; };
+  const colA1 = (r,c)=> XLSX.utils.encode_cell({r,c});
+
+  const plants=[];
+  const ah=find(/^anlegg$/i);
+  if(ah){
+    const hdr=grid[ah.r]||[];
+    let fc=hdr.findIndex((v,i)=>i>ah.c&&/fossil/i.test(str(v)));
+    if(fc<0) fc=ah.c+1;
+    for(let r=ah.r+1;r<grid.length;r++){
+      const name=str(cell(r,ah.c)); const v=cell(r,fc);
+      if(/^totalt/i.test(name))break;
+      if(!name&&v==null){ if(plants.length)break; else continue; }
+      if(name&&typeof v==='number') plants.push({name, fossil:v, sector:'Avfall', ref:colA1(r,fc)});
+    }
+  }
+  if(!plants.length) warnings.push('Fant ingen anlegg under «Anlegg».');
+
+  const top=[];
+  const uh=find(/^utslipper$/i);
+  if(uh){
+    const hdr=grid[uh.r]; const idx=re=>hdr.findIndex(v=>re.test(str(v)));
+    const tc=idx(/tonn/i), sc=idx(/^sektor/i), uc=idx(/undersektor/i);
+    for(let r=uh.r+1;r<grid.length;r++){
+      const name=str(cell(r,uh.c)); if(!name)break;
+      const t=cell(r,tc); if(typeof t!=='number')continue;
+      top.push({name, tonn:t, sector:str(cell(r,sc))||'Ukjent', sub:str(cell(r,uc))});
+    }
+  } else warnings.push('Fant ikke topp 100-listen («Utslipper»).');
+
+  return {sheetName,warnings,win,plants,top,
+    params:{fossil:fossil.v,capture:capture.v,price:price.v,years:years.v,budget:budget.v},
+    refs:{fossil:fossil.pos,capture:capture.pos,price:price.pos,years:years.pos,budget:budget.pos}};
+}
+
+/* ---------- Tilstand ---------- */
+let data=null, S=null;
+function initState(d){
+  const p=d.params;
+  S={
+    price:p.price??1700, fossil:Math.round((p.fossil??0.45)*100), capture:Math.round((p.capture??0.9)*100),
+    years:p.years??10, budget:(p.budget??20e9)/1e9, basis:'all', start:S?S.start:2030, order:S?S.order:'desc',
+    plants:d.plants.map((x,i)=>({...x,id:'f'+i,on:true,fs:null,fromFile:true}))
+  };
+}
+function syncInputs(){
+  for(const k of ['price','fossil','capture','years','budget','start']){ $('p-'+k).value=S[k]; $('r-'+k).value=S[k]; }
+  $('p-order').value=S.order;
+  $('b-all').setAttribute('aria-pressed',S.basis==='all'); $('b-fos').setAttribute('aria-pressed',S.basis==='fossil');
+  const r=data.refs, pr=data.params;
+  const lab=(k,txt)=>{$('s-'+k).textContent=r[k]?'fil: '+txt:'ikke i filen';};
+  lab('price',nf0.format(pr.price)); lab('fossil',nf0.format(pr.fossil*100)+' %'); lab('capture',nf0.format(pr.capture*100)+' %');
+  lab('years',pr.years); lab('budget',nf1.format(pr.budget/1e9)+' mrd');
+  $('windowtxt').textContent='rammeperiode '+data.win[0]+'–'+data.win[1];
+}
+
+/* ---------- Beregning ---------- */
+function compute(st){
+  const cap=st.capture/100;
+  const rows=st.plants.map((p,i)=>{
+    const fs=(p.fs??(p.sector==='Avfall'?st.fossil:100))/100;
+    const total=fs>0?p.fossil/fs:0, bio=total-p.fossil, captured=total*cap, fosCap=p.fossil*cap;
+    const basisT=st.basis==='all'?captured:fosCap;
+    const annual=basisT*st.price, need=annual*st.years;
+    return {...p,fsPct:fs*100,total,bio,captured,fosCap,basisT,annual,need,idx:i};
+  });
+  const on=rows.filter(r=>r.on);
+  const ordered=[...on].sort((a,b)=>st.order==='file'?a.idx-b.idx:st.order==='asc'?a.fossil-b.fossil:b.fossil-a.fossil);
+  const B=st.budget*1e9; let cum=0;
+  for(const r of ordered){ const before=cum; cum+=r.need; r.cum=cum; r.status= cum<=B+1?'in':before<B?'part':'out'; }
+  const sum=k=>on.reduce((s,r)=>s+r[k],0);
+  return {rows,ordered,B,need:sum('need'),captured:sum('captured'),fosCap:sum('fosCap'),bio:sum('bio'),fossil:sum('fossil'),total:sum('total'),basisT:sum('basisT'),annual:sum('annual')};
+}
+
+/* ---------- Tegning ---------- */
+function render(){
+  const R=compute(S);
+  const rest=R.B-R.need;
+  $('k-need').textContent=mrd(R.need);
+  $('k-rest').textContent=mrd(Math.abs(rest));
+  $('k-rest-l').textContent=rest>=0?'Til overs':'Mangler';
+  $('kpi-rest').className='kpi '+(rest>=0?'ok':'bad');
+  $('k-cap').textContent=nf0.format(R.captured/1000)+' kt';
+  $('k-cap-u').textContent='per år, hvorav '+nf0.format(R.fosCap/1000)+' kt fossilt';
+  const maxT=S.price*S.years>0?R.B/(S.price*S.years):0;
+  $('k-max').textContent=nf0.format(maxT/1000)+' kt';
+
+  // tabell
+  const tb=$('tbl').tBodies[0]; tb.innerHTML='';
+  const statusTxt={in:'Innenfor',part:'Delvis',out:'Utenfor'};
+  for(const r of R.rows){
+    const tr=document.createElement('tr'); if(!r.on)tr.className='off';
+    tr.innerHTML=`<td><input type="checkbox" id="on-${r.id}" ${r.on?'checked':''} aria-label="Ta med ${esc(r.name)}"></td>
+      <td class="name">${esc(r.name)}<small>${esc(r.sector)}${r.fromFile?' · celle '+r.ref:' · lagt til fra topp 100'}</small></td>
+      <td class="num">${nf0.format(r.fossil)}</td>
+      <td><input type="number" id="fs-${r.id}" min="1" max="100" step="1" value="${Math.round(r.fsPct)}" aria-label="Fossil andel for ${esc(r.name)}"></td>
+      <td class="num">${nf0.format(r.total)}</td>
+      <td class="num">${nf0.format(r.bio)}</td>
+      <td class="num">${nf0.format(r.captured)}</td>
+      <td class="num">${r.on?nf2.format(r.need/1e9):'–'}</td>
+      <td class="num">${r.on?nf2.format(r.cum/1e9):'–'}</td>
+      <td>${r.on?`<span class="pill ${r.status}">${statusTxt[r.status]}</span>`:''}</td>
+      <td>${r.fromFile?'':`<button class="xbtn" id="rm-${r.id}" aria-label="Fjern ${esc(r.name)}">×</button>`}</td>`;
+    tb.appendChild(tr);
+  }
+  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td><td></td><td></td></tr>`;
+
+  drawBar(R); drawPay(R); drawSens(); writeFindings(R,rest,maxT);
+  fillAdd();
+}
+
+function drawBar(R){
+  const W=1000,H=96,pad=10,top=26,bh=36;
+  const max=Math.max(R.B,R.need)*1.04||1, x=v=>pad+(W-2*pad)*v/max;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Støttebehov per anlegg stablet mot ramma">`;
+  let acc=0;
+  R.ordered.forEach((r,i)=>{
+    const x0=x(acc), x1=x(acc+r.need);
+    const inPart=Math.min(Math.max(R.B-acc,0),r.need);
+    if(inPart>0) s+=`<rect x="${x0}" y="${top}" width="${Math.max(x(acc+inPart)-x0-1,0)}" height="${bh}" fill="var(--accent)" opacity="${i%2?0.72:1}"><title>${esc(r.name)}: ${mrd(r.need)} mrd</title></rect>`;
+    if(inPart<r.need) s+=`<rect x="${x(acc+inPart)}" y="${top}" width="${Math.max(x1-x(acc+inPart)-1,0)}" height="${bh}" fill="var(--bad)" opacity="${i%2?0.72:1}"><title>${esc(r.name)}: ${mrd(r.need)} mrd</title></rect>`;
+    if(x1-x0>70) s+=`<text x="${x0+5}" y="${top+bh+16}">${esc(r.name.split(/[\s-]/)[0].slice(0,12))}</text>`;
+    acc+=r.need;
+  });
+  const xb=x(R.B);
+  s+=`<line x1="${xb}" x2="${xb}" y1="8" y2="${top+bh+4}" stroke="var(--ink)" stroke-width="2"/>`;
+  const anchor=xb>W-140?'end':'start', tx=anchor==='end'?xb-6:xb+6;
+  s+=`<text x="${tx}" y="18" text-anchor="${anchor}" style="fill:var(--ink)">Ramme ${nf1.format(R.B/1e9)} mrd</text>`;
+  s+=`<text x="${pad}" y="18">0</text></svg>`;
+  $('barchart').innerHTML=s;
+  const n=R.ordered.length, inn=R.ordered.filter(r=>r.status==='in').length;
+  $('fitline').textContent=`${inn} av ${n} anlegg får full støtte`;
+}
+
+function drawPay(R){
+  const y0=Math.min(data.win[0],S.start), y1=Math.max(data.win[1],S.start+S.years-1);
+  const yrs=[]; for(let y=y0;y<=y1;y++)yrs.push(y);
+  const val=y=> (y>=S.start&&y<S.start+S.years)?R.annual:0;
+  const max=Math.max(R.annual,1)*1.15;
+  const W=1000,H=220,l=48,r=10,t=14,b=30, bw=(W-l-r)/yrs.length;
+  const Y=v=>t+(H-t-b)*(1-v/max);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Utbetalinger per år">`;
+  const wx0=l+(data.win[0]-y0)*bw, wx1=l+(data.win[1]-y0+1)*bw;
+  s+=`<rect x="${wx0}" y="${t}" width="${wx1-wx0}" height="${H-t-b}" fill="var(--window)"/>`;
+  s+=`<text x="${wx0+6}" y="${t+14}">Rammeperiode ${data.win[0]}–${data.win[1]}</text>`;
+  const step=niceStep(max/1e9);
+  for(let v=0;v<=max/1e9;v+=step){ const yy=Y(v*1e9); s+=`<line x1="${l}" x2="${W-r}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${l-6}" y="${yy+4}" text-anchor="end">${nf1.format(v)}</text>`; }
+  yrs.forEach((y,i)=>{ const v=val(y); const inW=y>=data.win[0]&&y<=data.win[1];
+    if(v>0) s+=`<rect x="${l+i*bw+bw*0.15}" y="${Y(v)}" width="${bw*0.7}" height="${Y(0)-Y(v)}" fill="${inW?'var(--accent)':'var(--muted)'}"><title>${y}: ${mrd(v)} mrd</title></rect>`;
+    if(yrs.length<=16||i%2===0) s+=`<text x="${l+i*bw+bw/2}" y="${H-10}" text-anchor="middle">${y}</text>`; });
+  s+=`<text x="${l}" y="${t-2}" text-anchor="start" style="font-size:10px">mrd NOK</text></svg>`;
+  $('paychart').innerHTML=s;
+  const inYears=yrs.filter(y=>y>=data.win[0]&&y<=data.win[1]&&val(y)>0).length;
+  $('payline').textContent=`${inYears} av ${S.years} støtteår faller i rammeperioden`;
+  R.inWindow=inYears*R.annual;
+}
+function niceStep(m){ const raw=m/4; const p=Math.pow(10,Math.floor(Math.log10(raw||1))); const n=raw/p; return (n<1.5?1:n<3?2:n<7?5:10)*p; }
+
+function drawSens(){
+  const prices=[1000,1400,1700,2000,2500,3000];
+  if(!prices.includes(S.price)) prices.push(S.price), prices.sort((a,b)=>a-b);
+  const fss=[35,45,55,65]; if(!fss.includes(S.fossil)) fss.push(S.fossil), fss.sort((a,b)=>a-b);
+  let h='<thead><tr><th>Budpris \\ fossil andel</th>'+fss.map(f=>`<th>${f} %</th>`).join('')+'</tr></thead><tbody>';
+  for(const p of prices){
+    h+=`<tr><th class="num">${nf0.format(p)} kr/t</th>`;
+    for(const f of fss){ const R=compute({...S,price:p,fossil:f}); const v=(R.B-R.need)/1e9;
+      h+=`<td class="num ${v<0?'neg':'pos'} ${p===S.price&&f===S.fossil?'cur':''}">${v>0?'+':''}${nf1.format(v)}</td>`; }
+    h+='</tr>';
+  }
+  $('sens').innerHTML=h+'</tbody>';
+}
+
+function writeFindings(R,rest,maxT){
+  const L=[];
+  const be=R.basisT*S.years>0?R.B/(R.basisT*S.years):0;
+  L.push(`Med ${nf0.format(S.price)} kr/tonn i ${S.years} år trenger de ${R.ordered.length} valgte anleggene <b>${mrd(R.need)} mrd kr</b>. Det er ${rest>=0?`<b>${mrd(rest)} mrd til overs</b>`:`<b>${mrd(-rest)} mrd for lite</b>`} i en ramme på ${nf1.format(S.budget)} mrd.`);
+  L.push(`Ramma går akkurat opp ved en gjennomsnittlig budpris på <b>${nf0.format(be)} kr/tonn</b>. Høyere bud enn det betyr at minst ett anlegg faller utenfor.`);
+  if(S.basis==='all'&&R.captured>0){
+    const bioShare=1-R.fosCap/R.captured, perFos=R.need/(R.fosCap*S.years);
+    L.push(`<b>${nf0.format(bioShare*100)} % av tonnene Enova betaler for er biogene.</b> De gir negative utslipp, men reduserer ikke de fossile utslippene. Regnet per tonn fossil CO₂ fjernet blir prisen ${nf0.format(perFos)} kr/tonn. Om fossil andel i avfallet er lavere enn antatt, øker støttebehovet, fordi det samme fossile tallet da betyr mer total CO₂ å fange.`);
+  } else if(S.basis==='fossil'){
+    L.push(`Når bare den fossile delen får budpris, betaler ikke Enova for de ${nf0.format((R.captured-R.fosCap)/1000)} kt biogen CO₂ som også fanges. Anleggene må da finne annen betaling for negative utslipp, for eksempel et marked for karbonfjerning, ellers blir prosjektene svakere.`);
+  }
+  L.push(`Ramma tilsvarer om lag <b>${nf0.format(maxT/1000)} kt fanget CO₂ per år</b> i ${S.years} år. De valgte anleggene fanger ${nf0.format(R.captured/1000)} kt per år.`);
+  if(R.inWindow!=null){
+    L.push(`Med oppstart i ${S.start} utbetales <b>${mrd(R.inWindow)} mrd</b> i perioden ${data.win[0]}–${data.win[1]}, resten senere. Om ramma er en tilsagnsramme (hele kontrakten forpliktes i perioden), gjelder sammenligningen over. Om den er en utbetalingsramme, er det langt mer rom, men da trengs nye bevilgninger etter ${data.win[1]}.`);
+  }
+  $('findings').innerHTML=L.map(x=>`<li>${x}</li>`).join('');
+}
+
+function fillAdd(){
+  const sel=$('addsel'), cur=sel.value;
+  const have=new Set(S.plants.map(p=>p.fossil));
+  const used=new Set(S.plants.filter(p=>!p.fromFile).map(p=>p.name));
+  sel.innerHTML=data.top.map((t,i)=>{ const dup=used.has(t.name)||have.has(t.tonn);
+    return `<option value="${i}" ${dup?'disabled':''}>${esc(t.name)} · ${esc(t.sector)}${t.sub?' / '+esc(t.sub):''} · ${nf0.format(t.tonn)} t${dup?' (med)':''}</option>`; }).join('');
+  if(cur) sel.value=cur;
+}
+
+/* ---------- Hendelser ---------- */
+for(const k of ['price','fossil','capture','years','budget','start']){
+  for(const pre of ['p-','r-']) $(pre+k).addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(isNaN(v))return; S[k]=v; $((pre==='p-'?'r-':'p-')+k).value=v; render(); });
+}
+$('p-order').addEventListener('change',e=>{S.order=e.target.value;render();});
+$('b-all').addEventListener('click',()=>{S.basis='all';syncInputs();render();});
+$('b-fos').addEventListener('click',()=>{S.basis='fossil';syncInputs();render();});
+$('reset').addEventListener('click',()=>{const keep=S.plants.filter(p=>!p.fromFile);initState(data);S.plants.push(...keep);syncInputs();render();});
+$('tbl').addEventListener('change',e=>{
+  const id=e.target.id;
+  if(id.startsWith('on-')){ const p=S.plants.find(p=>p.id===id.slice(3)); p.on=e.target.checked; render(); }
+  if(id.startsWith('fs-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.fs=isNaN(v)?null:Math.min(100,Math.max(1,v)); render(); }
+});
+$('tbl').addEventListener('click',e=>{ const b=e.target.closest('button.xbtn'); if(!b)return; S.plants=S.plants.filter(p=>p.id!==b.id.slice(3)); render(); });
+$('addbtn').addEventListener('click',()=>{
+  const t=data.top[+$('addsel').value]; if(!t)return;
+  const isWaste=/avfall/i.test(t.sector);
+  S.plants.push({id:'t'+Date.now(),name:t.name,fossil:t.tonn,sector:isWaste?'Avfall':t.sector,on:true,fs:null,fromFile:false});
+  render();
+});
+$('file').addEventListener('change',async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  try{ const buf=await f.arrayBuffer(); load(XLSX.read(buf,{type:'array'}),f.name); }
+  catch(err){ $('loadstatus').textContent='Kunne ikke lese filen: '+err.message+'. Sjekk at det er en .xlsx-fil.'; $('loadstatus').className='status err'; }
+});
+
+function load(wb,name){
+  data=parseWorkbook(wb);
+  const keep=S?S.plants.filter(p=>!p.fromFile):[];
+  initState(data); S.plants.push(...keep);
+  syncInputs(); render();
+  const st=$('loadstatus');
+  st.textContent=`Lest fra ${name}, ark «${data.sheetName}»: ${data.plants.length} anlegg, ${data.top.length} rader i topp 100-listen.`+(data.warnings.length?' Advarsel: '+data.warnings.join(' '):'');
+  st.className='status'+(data.warnings.length?' err':'');
+}
+
+function b64ToBuf(b){const s=atob(b);const a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a;}
+(async()=>{
+  // Prøv å lese Excel-filen som ligger ved siden av siden (GitHub Pages); bruk innebygd kopi som reserve.
+  try{ const r=await fetch(EMBEDDED_NAME,{cache:'no-store'}); if(!r.ok)throw 0;
+    load(XLSX.read(new Uint8Array(await r.arrayBuffer()),{type:'array'}),EMBEDDED_NAME); }
+  catch(e){ load(XLSX.read(b64ToBuf(EMBEDDED_XLSX),{type:'array'}),EMBEDDED_NAME+' (innebygd kopi)'); }
+})();
+</script>
+
+</body>
+</html>
