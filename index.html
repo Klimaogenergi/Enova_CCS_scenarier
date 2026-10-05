@@ -86,6 +86,7 @@ td input.own{border-color:var(--accent);color:var(--accent);font-weight:500}
 td input.unk{border-style:dashed;border-color:var(--warn);color:var(--muted)}
 td input[id^=fo-],td input[id^=bo-]{width:84px}
 td input[id^=pr-]{width:64px}
+td input[id^=vd-]{width:72px}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:1px 7px;border-radius:99px;border:1px solid}
 .pill.in{color:var(--ok);border-color:var(--ok)}
 .pill.part{color:var(--warn);border-color:var(--warn)}
@@ -207,7 +208,7 @@ footer a{color:var(--accent)}
         <div class="tablewrap">
           <table id="tbl">
             <thead><tr>
-              <th></th><th>Anlegg</th><th>Fossilt, anslag</th><th>Biogent, anslag</th><th>Budpris kr/t</th><th>Totalt</th><th>Fanget</th><th>Støttebehov mrd</th><th></th>
+              <th></th><th>Anlegg</th><th>Fossilt, anslag</th><th>Biogent, anslag</th><th>Budpris kr/t</th><th>Vedtaksår</th><th>Totalt</th><th>Fanget</th><th>Støttebehov mrd</th><th></th>
             </tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
@@ -218,7 +219,7 @@ footer a{color:var(--accent)}
           <select id="addsel"></select>
           <button type="button" class="btn" id="addbtn">Legg til</button>
         </div>
-        <p class="hint">Fossile tall er fra norskeutslipp.no (2023). Biogent CO₂ rapporteres ikke der. For avfallsanlegg anslås det ut fra felles fossil andel; for andre anlegg er det ukjent og regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake til anslaget.</p>
+        <p class="hint">Vedtaksår per anlegg følger det felles vedtaksåret til du endrer det. Fossile tall er fra norskeutslipp.no (2023). Biogent CO₂ rapporteres ikke der. For avfallsanlegg anslås det ut fra felles fossil andel; for andre anlegg er det ukjent og regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake til anslaget.</p>
       </section>
 
       <details class="panel">
@@ -377,13 +378,14 @@ function render(){
       <td><input type="number" class="${r.fo!=null?'own':''}" id="fo-${r.id}" min="0" step="1000" value="${Math.round(r.fossil)}" title="${r.fo!=null?'Eget tall. Tøm feltet for å bruke '+nf0.format(r.fossilFile)+' t fra filen.':'Fra filen (norskeutslipp.no 2023)'}" aria-label="Fossilt CO₂ for ${esc(r.name)}"></td>
       <td><input type="number" class="${r.bo!=null?'own':r.bioUnknown?'unk':''}" id="bo-${r.id}" min="0" step="1000" value="${Math.round(r.bio)}" title="${r.bo!=null?'Eget tall. Tøm feltet for å gå tilbake til anslaget.':r.bioUnknown?'Ukjent, regnes som 0. Legg inn et anslag.':'Anslått fra felles fossil andel ('+S.fossil+' %)'}" aria-label="Biogent CO₂ for ${esc(r.name)}"></td>
       <td><input type="number" class="${r.pr!=null?'own':''}" id="pr-${r.id}" min="0" step="50" value="${Math.round(r.price)}" title="${r.pr!=null?'Egen budpris. Tøm feltet for å følge felles budpris.':'Følger felles budpris'}" aria-label="Budpris for ${esc(r.name)}"></td>
+      <td><input type="number" class="${r.vd!=null?'own':''}" id="vd-${r.id}" min="2025" max="2040" step="1" value="${r.vd??S.vedtak}" title="${r.vd!=null?'Eget vedtaksår. Tøm feltet for å følge felles vedtaksår.':'Følger felles vedtaksår'}" aria-label="Vedtaksår for ${esc(r.name)}"></td>
       <td class="num">${nf0.format(r.total)}</td>
       <td class="num">${nf0.format(r.captured)}</td>
       <td class="num">${r.on?nf2.format(r.need/1e9):'–'}</td>
       <td>${r.fromFile?'':`<button class="xbtn" id="rm-${r.id}" aria-label="Fjern ${esc(r.name)}">×</button>`}</td>`;
     tb.appendChild(tr);
   }
-  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td></tr>`;
+  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td></tr>`;
 
   drawBar(R); drawPay(R); drawSens();
   fillAdd();
@@ -411,18 +413,22 @@ function drawBar(R){
 }
 
 function payProfile(R){
-  const up=S.upfront/100, b0=S.vedtak, nb=Math.max(1,S.build), op0=b0+nb, tot=R.funded;
-  const build={}, ops={};
-  for(let k=0;k<nb;k++) build[b0+k]=tot*up/nb;
-  for(let k=0;k<S.years;k++) ops[op0+k+1]=tot*(1-up)/S.years;
-  const first=Math.min(data.win[0],b0), last=Math.max(data.win[1],op0+S.years);
+  const up=S.upfront/100, nb=Math.max(1,S.build);
+  const build={}, ops={}; let b0=Infinity, lastPay=-Infinity;
+  for(const r of R.ordered.filter(r=>r.status==='in')){
+    const v=r.vd??S.vedtak, op0=v+nb; b0=Math.min(b0,v); lastPay=Math.max(lastPay,op0+S.years);
+    for(let k=0;k<nb;k++) build[v+k]=(build[v+k]||0)+r.need*up/nb;
+    for(let k=0;k<S.years;k++) ops[op0+k+1]=(ops[op0+k+1]||0)+r.need*(1-up)/S.years;
+  }
+  if(!isFinite(b0)){ b0=S.vedtak; lastPay=S.vedtak+nb+S.years; }
+  const first=Math.min(data.win[0],b0), last=Math.max(data.win[1],lastPay);
   const yrs=[]; for(let y=first;y<=last;y++) yrs.push(y);
   const tot_=y=>(build[y]||0)+(ops[y]||0);
   const peak=Math.max(...yrs.map(tot_),0);
-  const py=yrs.filter(y=>tot>0&&Math.abs(tot_(y)-peak)<1);
+  const py=yrs.filter(y=>peak>0&&Math.abs(tot_(y)-peak)<1);
   const peakYears=py.length>1?(py.length===py[py.length-1]-py[0]+1?py[0]+'–'+py[py.length-1]:py.join(', ')):(py[0]||'–');
   const inWindow=yrs.filter(y=>y>=data.win[0]&&y<=data.win[1]).reduce((a,y)=>a+tot_(y),0);
-  return {build,ops,yrs,first,last:op0+S.years,op0,peak,peakYears,inWindow,tot:tot_};
+  return {build,ops,yrs,first,last:lastPay,peak,peakYears,inWindow,tot:tot_};
 }
 function drawPay(R){
   const P=R.pay, yrs=P.yrs, y0=yrs[0];
@@ -494,6 +500,7 @@ $('reset').addEventListener('click',()=>{const keep=S.plants.filter(p=>!p.fromFi
 $('tbl').addEventListener('change',e=>{
   const id=e.target.id;
   if(id.startsWith('on-')){ const p=S.plants.find(p=>p.id===id.slice(3)); p.on=e.target.checked; render(); }
+  if(id.startsWith('vd-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseInt(e.target.value,10); p.vd=(isNaN(v)||v===S.vedtak)?null:Math.min(2040,Math.max(2025,v)); render(); }
   if(id.startsWith('pr-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.pr=(isNaN(v)||v===S.price)?null:Math.max(0,v); render(); }
   if(id.startsWith('fo-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.fo=(isNaN(v)||v===p.fossil)?null:Math.max(0,v); render(); }
   if(id.startsWith('bo-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.bo=isNaN(v)?null:Math.max(0,v); render(); }
