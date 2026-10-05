@@ -180,6 +180,13 @@ footer a{color:var(--accent)}
       </section>
 
       <section class="panel chart">
+        <div class="sectionhead"><h2>Utbetalinger per år</h2><span class="status" id="payline"></span></div>
+        <div id="paychart"></div>
+        <div class="legend"><span><i style="background:var(--bio)"></i>Byggefase</span><span><i style="background:var(--accent)"></i>Drift (betales året etter lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
+        <p class="hint">Byggeandelen fordeles jevnt over byggeårene. Resten gjøres om til en pris per tonn og betales etterskuddsvis for hvert driftsår, slik høringsnotatet (kap. 9.2) beskriver. Notatet begrenser også byggeandelen til 50 % av investeringskostnaden, som ikke er med her.</p>
+      </section>
+
+      <section class="panel chart">
         <div class="sectionhead"><h2>Støttebehov per anlegg mot rammen</h2><span class="status" id="fitline"></span></div>
         <div id="barchart"></div>
         <div class="legend"><span><i style="background:var(--accent)"></i>Innenfor rammen</span><span><i style="background:var(--bad)"></i>Utenfor rammen</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
@@ -202,18 +209,6 @@ footer a{color:var(--accent)}
           <button type="button" class="btn" id="addbtn">Legg til</button>
         </div>
         <p class="hint">Fossile tall er fra norskeutslipp.no (2023). Biogent CO₂ rapporteres ikke der. For avfallsanlegg anslås det ut fra felles fossil andel; for andre anlegg er det ukjent og regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake til anslaget.</p>
-      </section>
-
-      <section class="panel">
-        <h2>Hva tallene sier</h2>
-        <ul class="findings" id="findings"></ul>
-      </section>
-
-      <section class="panel chart">
-        <div class="sectionhead"><h2>Utbetalinger per år</h2><span class="status" id="payline"></span></div>
-        <div id="paychart"></div>
-        <div class="legend"><span><i style="background:var(--bio)"></i>Byggefase</span><span><i style="background:var(--accent)"></i>Drift (betales året etter lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
-        <p class="hint">Byggeandelen fordeles jevnt over byggeårene. Resten gjøres om til en pris per tonn og betales etterskuddsvis for hvert driftsår, slik høringsnotatet (kap. 9.2) beskriver. Notatet begrenser også byggeandelen til 50 % av investeringskostnaden, som ikke er med her.</p>
       </section>
 
       <section class="panel">
@@ -376,7 +371,7 @@ function render(){
   }
   $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td></tr>`;
 
-  drawBar(R); drawPay(R); drawSens(); writeFindings(R,rest,maxT);
+  drawBar(R); drawPay(R); drawSens();
   fillAdd();
 }
 
