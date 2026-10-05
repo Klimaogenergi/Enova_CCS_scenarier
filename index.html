@@ -299,7 +299,7 @@ function initState(d){
   const p=d.params;
   S={
     price:p.price??1700, fossil:Math.round((p.fossil??0.45)*100), capture:Math.round((p.capture??0.9)*100),
-    years:p.years??10, budget:(p.budget??20e9)/1e9, basis:'all', start:S?S.start:2030, order:S?S.order:'desc',
+    years:p.years??10, budget:(p.budget??20e9)/1e9, basis:'all', start:S?S.start:2030, order:S?S.order:'rand',
     plants:d.plants.map((x,i)=>({...x,id:'f'+i,on:true,fo:null,bo:null,fromFile:true,rnd:Math.random()}))
   };
 }
