@@ -9,8 +9,10 @@ Et nettverktøy som viser hvor mye karbonfangst og -lagring (CCS) Enovas foresl�
 Arket leses etter etiketter, ikke etter faste celleadresser:
 
 - **Anlegg:** en celle med teksten `Anlegg` starter anleggslisten. Kolonnen med overskrift som inneholder `Fossil` gir fossile utslipp. Listen leses til raden `Totalt`.
-- **Forutsetninger:** tallet til høyre for etikettene `Fossil andel`, `Fangstgrad`, `Budpris`, `Antall år driftsstøtte` og `Total ramme` brukes. Årstallene i `Total ramme for Enova 2027-2032` gir rammeperioden.
+- **Forutsetninger:** tallet til høyre for etikettene `Fossil andel`, `Fangstgrad`, `Antall år driftsstøtte` og `Total ramme` brukes. Budprisen leses ikke fra arket; standard er 2 000 kr/t, i tråd med Enovas anslag på 1 200–2 500 kr per netto unngått tonn i høringsnotatet. Årstallene i `Total ramme for Enova 2027-2032` gir rammeperioden.
 - **Topp 100-listen:** en celle med teksten `Utslipper` starter listen, med kolonnene `Tonn CO2`, `Sektor` og `Undersektor`. Anlegg herfra kan legges til i verktøyet.
+
+Utbetalingsprofilen (vedtaksår, byggetid og andel utbetalt i byggefasen) følger høringsnotatets kapittel 9.2 og stilles inn i verktøyet.
 
 Formlene i regnearket brukes ikke; verktøyet regner selv ut fra grunntallene.
 
