@@ -30,6 +30,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
 h1{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;letter-spacing:-.01em}
+sub{font-size:.6em;line-height:0}
 h2{font-size:1.1rem;font-weight:700}
 .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
@@ -101,7 +102,7 @@ footer a{color:var(--accent)}
 <div class="wrap">
   <header>
     <div class="eyebrow">Karbonfangst · Enova · avfallsforbrenning</div>
-    <h1>Hvor mye CCS får Enova-rammen plass til?</h1>
+    <h1>Hvor mye CO<sub>2</sub>-fangst og -lagring får Enova-rammen plass til?</h1>
     <p class="lede">Regnestykket leses fra Topp100_CO2_2023.xlsx (kolonne F–L). Alle forutsetninger kan justeres, enkeltanlegg kan slås av og på, og du kan legge til anlegg fra topp 100-listen eller laste inn en oppdatert Excel-fil.</p>
   </header>
 
@@ -133,7 +134,7 @@ footer a{color:var(--accent)}
         <p class="hint">Milliarder NOK, <span id="windowtxt"></span></p>
       </div>
       <div class="field">
-        <label>Hvilke tonn får budpris?</label>
+        <label>Hva skal Enova støtte?</label>
         <div class="seg" role="group" aria-label="Støttegrunnlag">
           <button type="button" id="b-all" aria-pressed="true">All fanget CO₂</button>
           <button type="button" id="b-fos" aria-pressed="false">Bare fossil del</button>
@@ -151,7 +152,9 @@ footer a{color:var(--accent)}
           <option value="desc">Største utslipp først</option>
           <option value="asc">Minste utslipp først</option>
           <option value="file">Rekkefølgen i filen</option>
+          <option value="rand">Tilfeldig</option>
         </select>
+        <button type="button" class="btn" id="reshuffle" hidden>Trekk ny rekkefølge</button>
       </div>
       <button type="button" class="btn" id="reset">Tilbake til verdiene i filen</button>
     </aside>
@@ -295,12 +298,12 @@ function initState(d){
   S={
     price:p.price??1700, fossil:Math.round((p.fossil??0.45)*100), capture:Math.round((p.capture??0.9)*100),
     years:p.years??10, budget:(p.budget??20e9)/1e9, basis:'all', start:S?S.start:2030, order:S?S.order:'desc',
-    plants:d.plants.map((x,i)=>({...x,id:'f'+i,on:true,fs:null,fromFile:true}))
+    plants:d.plants.map((x,i)=>({...x,id:'f'+i,on:true,fs:null,fromFile:true,rnd:Math.random()}))
   };
 }
 function syncInputs(){
   for(const k of ['price','fossil','capture','years','budget','start']){ $('p-'+k).value=S[k]; $('r-'+k).value=S[k]; }
-  $('p-order').value=S.order;
+  $('p-order').value=S.order; $('reshuffle').hidden=S.order!=='rand';
   $('b-all').setAttribute('aria-pressed',S.basis==='all'); $('b-fos').setAttribute('aria-pressed',S.basis==='fossil');
   const r=data.refs, pr=data.params;
   const lab=(k,txt)=>{$('s-'+k).textContent=r[k]?'fil: '+txt:'ikke i filen';};
@@ -321,7 +324,7 @@ function compute(st){
     return {...p,fsPct:fs*100,price,total,bio,captured,fosCap,basisT,annual,need,idx:i};
   });
   const on=rows.filter(r=>r.on);
-  const ordered=[...on].sort((a,b)=>st.order==='file'?a.idx-b.idx:st.order==='asc'?a.fossil-b.fossil:b.fossil-a.fossil);
+  const ordered=[...on].sort((a,b)=>st.order==='rand'?(a.rnd??1)-(b.rnd??1):st.order==='file'?a.idx-b.idx:st.order==='asc'?a.fossil-b.fossil:b.fossil-a.fossil);
   const B=st.budget*1e9; let cum=0;
   for(const r of ordered){ const before=cum; cum+=r.need; r.cum=cum; r.status= cum<=B+1?'in':before<B?'part':'out'; }
   const sum=k=>on.reduce((s,r)=>s+r[k],0);
@@ -459,7 +462,9 @@ function fillAdd(){
 for(const k of ['price','fossil','capture','years','budget','start']){
   for(const pre of ['p-','r-']) $(pre+k).addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(isNaN(v))return; S[k]=v; $((pre==='p-'?'r-':'p-')+k).value=v; render(); });
 }
-$('p-order').addEventListener('change',e=>{S.order=e.target.value;render();});
+function shuffle(){ for(const p of S.plants) p.rnd=Math.random(); }
+$('p-order').addEventListener('change',e=>{S.order=e.target.value; if(S.order==='rand')shuffle(); $('reshuffle').hidden=S.order!=='rand'; render();});
+$('reshuffle').addEventListener('click',()=>{shuffle();render();});
 $('b-all').addEventListener('click',()=>{S.basis='all';syncInputs();render();});
 $('b-fos').addEventListener('click',()=>{S.basis='fossil';syncInputs();render();});
 $('reset').addEventListener('click',()=>{const keep=S.plants.filter(p=>!p.fromFile);initState(data);S.plants.push(...keep);syncInputs();render();});
@@ -473,7 +478,7 @@ $('tbl').addEventListener('click',e=>{ const b=e.target.closest('button.xbtn'); 
 $('addbtn').addEventListener('click',()=>{
   const t=data.top[+$('addsel').value]; if(!t)return;
   const isWaste=/avfall/i.test(t.sector);
-  S.plants.push({id:'t'+Date.now(),name:t.name,fossil:t.tonn,sector:isWaste?'Avfall':t.sector,on:true,fs:null,fromFile:false});
+  S.plants.push({id:'t'+Date.now(),name:t.name,fossil:t.tonn,sector:isWaste?'Avfall':t.sector,on:true,fs:null,fromFile:false,rnd:Math.random()});
   render();
 });
 $('file').addEventListener('change',async e=>{
