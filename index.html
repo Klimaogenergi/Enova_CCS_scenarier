@@ -180,7 +180,7 @@ footer a{color:var(--accent)}
         <div class="tablewrap">
           <table id="tbl">
             <thead><tr>
-              <th></th><th>Anlegg</th><th>Fossilt, anslag</th><th>Biogent, anslag</th><th>Budpris kr/t</th><th>Totalt</th><th>Fanget</th><th>Støttebehov mrd</th><th>Kumulativt mrd</th><th>Status</th><th></th>
+              <th></th><th>Anlegg</th><th>Fossilt, anslag</th><th>Biogent, anslag</th><th>Budpris kr/t</th><th>Totalt</th><th>Fanget</th><th>Støttebehov mrd</th><th>Kumulativt mrd</th><th></th>
             </tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
@@ -350,7 +350,6 @@ function render(){
 
   // tabell
   const tb=$('tbl').tBodies[0]; tb.innerHTML='';
-  const statusTxt={in:'Innenfor',part:'Delvis',out:'Utenfor'};
   for(const r of R.rows){
     const tr=document.createElement('tr'); if(!r.on)tr.className='off';
     tr.innerHTML=`<td><input type="checkbox" id="on-${r.id}" ${r.on?'checked':''} aria-label="Ta med ${esc(r.name)}"></td>
@@ -362,11 +361,10 @@ function render(){
       <td class="num">${nf0.format(r.captured)}</td>
       <td class="num">${r.on?nf2.format(r.need/1e9):'–'}</td>
       <td class="num">${r.on?nf2.format(r.cum/1e9):'–'}</td>
-      <td>${r.on?`<span class="pill ${r.status}">${statusTxt[r.status]}</span>`:''}</td>
       <td>${r.fromFile?'':`<button class="xbtn" id="rm-${r.id}" aria-label="Fjern ${esc(r.name)}">×</button>`}</td>`;
     tb.appendChild(tr);
   }
-  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td><td></td><td></td></tr>`;
+  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td><td></td></tr>`;
 
   drawBar(R); drawPay(R); drawSens(); writeFindings(R,rest,maxT);
   fillAdd();
