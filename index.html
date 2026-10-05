@@ -38,8 +38,14 @@ h2{font-size:1.1rem;font-weight:700}
 .grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
-aside.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
-@media (max-width:860px){aside.panel{position:static}}
+aside.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow-y:auto;gap:12px}
+h3.group{font-size:.72rem;font-family:var(--f-mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+details.panel>summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:1.1rem;list-style-position:inside}
+details.panel:not([open]){gap:0}
+.yeartbl{min-width:0;width:auto}
+.yeartbl th,.yeartbl td{padding:5px 8px}
+.yeartbl tr.sum td,.yeartbl tr.sum th{font-weight:600;border-top:2px solid var(--ink)}
+@media (max-width:860px){aside.panel{position:static;max-height:none}}
 main{display:flex;flex-direction:column;gap:20px;min-width:0}
 .field{display:flex;flex-direction:column;gap:4px}
 .field label{font-weight:600;font-size:.9rem;display:flex;justify-content:space-between;gap:8px}
@@ -106,26 +112,24 @@ footer a{color:var(--accent)}
   <header>
     <div class="eyebrow">Karbonfangst · Enova · avfallsforbrenning</div>
     <h1>Hvor mye CO<sub>2</sub>-fangst og -lagring får Enova-rammen plass til?</h1>
-    <p class="lede">Regnestykket leses fra Topp100_CO2_2023.xlsx (kolonne F–L). Alle forutsetninger kan justeres, enkeltanlegg kan slås av og på, og du kan legge til anlegg fra topp 100-listen eller laste inn en oppdatert Excel-fil.</p>
+    <p class="lede">Hva koster det staten å støtte CO₂-fangst og -lagring, og når må pengene bevilges? Juster forutsetningene til venstre og anleggene i tabellen.</p>
   </header>
 
   <div class="grid">
     <aside class="panel" aria-label="Forutsetninger">
       <h2>Forutsetninger</h2>
+      <h3 class="group">Støtte</h3>
       <div class="field">
         <label for="p-price">Budpris <span class="src" id="s-price"></span></label>
         <div class="row"><input type="range" id="r-price" min="500" max="4000" step="50"><input type="number" id="p-price" step="50"></div>
-        <p class="hint">NOK per tonn CO₂ fanget og lagret. Enova venter at støtten i hovedsak havner på 1 200–2 500 kr per netto unngått tonn. Kan overstyres per anlegg i tabellen.</p>
+        <p class="hint">kr per tonn lagret CO₂. Enova venter 1 200–2 500. Kan settes per anlegg i tabellen.</p>
       </div>
       <div class="field">
-        <label for="p-fossil">Fossil andel i avfallet <span class="src" id="s-fossil"></span></label>
-        <div class="row"><input type="range" id="r-fossil" min="20" max="80" step="1"><input type="number" id="p-fossil" step="1"></div>
-        <p class="hint">Prosent. Brukes til å anslå biogent CO₂ for avfallsanlegg som ikke har eget tall i tabellen.</p>
-      </div>
-      <div class="field">
-        <label for="p-capture">Fangstgrad <span class="src" id="s-capture"></span></label>
-        <div class="row"><input type="range" id="r-capture" min="50" max="99" step="1"><input type="number" id="p-capture" step="1"></div>
-        <p class="hint">Prosent av all CO₂ i røykgassen</p>
+        <label>Hva skal Enova støtte?</label>
+        <div class="seg" role="group" aria-label="Støttegrunnlag">
+          <button type="button" id="b-all" aria-pressed="true">All fanget CO₂</button>
+          <button type="button" id="b-fos" aria-pressed="false">Bare fossil del</button>
+        </div>
       </div>
       <div class="field">
         <label for="p-years">År med driftsstøtte <span class="src" id="s-years"></span></label>
@@ -134,32 +138,10 @@ footer a{color:var(--accent)}
       <div class="field">
         <label for="p-budget">Enova-ramme <span class="src" id="s-budget"></span></label>
         <div class="row"><input type="range" id="r-budget" min="0" max="50" step="0.5"><input type="number" id="p-budget" step="0.5"></div>
-        <p class="hint">Milliarder NOK, <span id="windowtxt"></span></p>
+        <p class="hint">mrd kr i tilsagn, <span id="windowtxt"></span></p>
       </div>
       <div class="field">
-        <label>Hva skal Enova støtte?</label>
-        <div class="seg" role="group" aria-label="Støttegrunnlag">
-          <button type="button" id="b-all" aria-pressed="true">All fanget CO₂</button>
-          <button type="button" id="b-fos" aria-pressed="false">Bare fossil del</button>
-        </div>
-        <p class="hint">Excel-arket betaler for all fanget CO₂, også den biogene.</p>
-      </div>
-      <div class="field">
-        <label for="p-vedtak">Vedtaksår <span class="src">antakelse</span></label>
-        <div class="row"><input type="range" id="r-vedtak" min="2026" max="2032" step="1"><input type="number" id="p-vedtak" step="1"></div>
-      </div>
-      <div class="field">
-        <label for="p-build">Byggetid <span class="src">høringsnotat: maks 5</span></label>
-        <div class="row"><input type="range" id="r-build" min="1" max="6" step="1"><input type="number" id="p-build" step="1"></div>
-        <p class="hint">År fra vedtak til drift</p>
-      </div>
-      <div class="field">
-        <label for="p-upfront">Andel utbetalt i byggefasen <span class="src">høringsnotat: inntil 40</span></label>
-        <div class="row"><input type="range" id="r-upfront" min="0" max="50" step="5"><input type="number" id="p-upfront" step="5"></div>
-        <p class="hint">Prosent av støtten. Vedtak, byggetid og andel påvirker bare utbetalingsprofilen, ikke totalen.</p>
-      </div>
-      <div class="field">
-        <label for="p-order">Prioritering innenfor rammen</label>
+        <label for="p-order">Rekkefølge innenfor rammen</label>
         <select id="p-order">
           <option value="desc">Største utslipp først</option>
           <option value="asc">Minste utslipp først</option>
@@ -168,28 +150,56 @@ footer a{color:var(--accent)}
         </select>
         <button type="button" class="btn" id="reshuffle" hidden>Trekk ny rekkefølge</button>
       </div>
-      <button type="button" class="btn" id="reset">Tilbake til verdiene i filen</button>
+      <h3 class="group">Utbetaling</h3>
+      <div class="field">
+        <label for="p-vedtak">Vedtaksår <span class="src">antakelse</span></label>
+        <div class="row"><input type="range" id="r-vedtak" min="2026" max="2032" step="1"><input type="number" id="p-vedtak" step="1"></div>
+      </div>
+      <div class="field">
+        <label for="p-build">Byggetid <span class="src">antakelse</span></label>
+        <div class="row"><input type="range" id="r-build" min="1" max="6" step="1"><input type="number" id="p-build" step="1"></div>
+        <p class="hint">år fra vedtak til drift, maks 5 ifølge Enova</p>
+      </div>
+      <div class="field">
+        <label for="p-upfront">Utbetalt i byggefasen <span class="src">antakelse</span></label>
+        <div class="row"><input type="range" id="r-upfront" min="0" max="50" step="5"><input type="number" id="p-upfront" step="5"></div>
+        <p class="hint">% av støtten, inntil 40 ifølge Enova</p>
+      </div>
+      <h3 class="group">Anlegg og fangst</h3>
+      <div class="field">
+        <label for="p-fossil">Fossil andel i avfallet <span class="src" id="s-fossil"></span></label>
+        <div class="row"><input type="range" id="r-fossil" min="20" max="80" step="1"><input type="number" id="p-fossil" step="1"></div>
+        <p class="hint">%. Brukes til å anslå biogent CO₂.</p>
+      </div>
+      <div class="field">
+        <label for="p-capture">Fangstgrad <span class="src" id="s-capture"></span></label>
+        <div class="row"><input type="range" id="r-capture" min="50" max="99" step="1"><input type="number" id="p-capture" step="1"></div>
+        <p class="hint">% av CO₂ i røykgassen</p>
+      </div>
+      <button type="button" class="btn" id="reset">Tilbakestill alt</button>
     </aside>
 
     <main>
       <section class="kpis" aria-label="Hovedtall">
-        <div class="kpi"><span class="eyebrow">Støttebehov</span><span class="v" id="k-need"></span><span class="u">mrd NOK over hele støtteperioden</span></div>
-        <div class="kpi" id="kpi-rest"><span class="eyebrow" id="k-rest-l">Til overs</span><span class="v" id="k-rest"></span><span class="u">mrd NOK mot rammen</span></div>
-        <div class="kpi"><span class="eyebrow">Fanget CO₂</span><span class="v" id="k-cap"></span><span class="u" id="k-cap-u"></span></div>
-        <div class="kpi"><span class="eyebrow">Rammen rekker til</span><span class="v" id="k-max"></span><span class="u">tonn CO₂ per år med støtte</span></div>
+        <div class="kpi"><span class="eyebrow">Støttebehov</span><span class="v" id="k-need"></span><span class="u">mrd kr for valgte anlegg, hele perioden</span></div>
+        <div class="kpi" id="kpi-rest"><span class="eyebrow" id="k-rest-l">Til overs</span><span class="v" id="k-rest"></span><span class="u">mrd kr mot rammen</span></div>
+        <div class="kpi"><span class="eyebrow" id="k-win-l">Utbetalt innen 2032</span><span class="v" id="k-win"></span><span class="u" id="k-win-u"></span></div>
+        <div class="kpi"><span class="eyebrow">Største årlige utbetaling</span><span class="v" id="k-peak"></span><span class="u" id="k-peak-u"></span></div>
       </section>
 
       <section class="panel chart">
         <div class="sectionhead"><h2>Utbetalinger per år</h2><span class="status" id="payline"></span></div>
         <div id="paychart"></div>
         <div class="legend"><span><i style="background:var(--bio)"></i>Byggefase</span><span><i style="background:var(--accent)"></i>Drift (betales året etter lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
-        <p class="hint">Byggeandelen fordeles jevnt over byggeårene. Resten gjøres om til en pris per tonn og betales etterskuddsvis for hvert driftsår, slik høringsnotatet (kap. 9.2) beskriver. Notatet begrenser også byggeandelen til 50 % av investeringskostnaden, som ikke er med her.</p>
+        <div class="tablewrap"><table class="yeartbl" id="yeartbl"></table></div>
+        <div class="addrow"><button type="button" class="btn" id="copytbl">Kopier tabellen</button><span class="status" id="copystatus"></span></div>
+        <p class="hint">Bare anlegg som får plass innenfor rammen er med. Byggeandelen fordeles jevnt over byggeårene. Resten betales per tonn året etter lagring, i tråd med høringsnotatet (kap. 9.2). Notatets tak på 50 % av investeringskostnaden er ikke med.</p>
       </section>
 
       <section class="panel chart">
         <div class="sectionhead"><h2>Støttebehov per anlegg mot rammen</h2><span class="status" id="fitline"></span></div>
         <div id="barchart"></div>
-        <div class="legend"><span><i style="background:var(--accent)"></i>Innenfor rammen</span><span><i style="background:var(--bad)"></i>Utenfor rammen</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Får plass</span><span><i style="background:var(--bad)"></i>Får ikke plass</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
       </section>
 
       <section class="panel">
@@ -211,17 +221,18 @@ footer a{color:var(--accent)}
         <p class="hint">Fossile tall er fra norskeutslipp.no (2023). Biogent CO₂ rapporteres ikke der. For avfallsanlegg anslås det ut fra felles fossil andel; for andre anlegg er det ukjent og regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake til anslaget.</p>
       </section>
 
-      <section class="panel">
-        <div class="sectionhead"><h2>Følsomhet: til overs eller mangler (mrd NOK)</h2><span class="hint">Felles budpris mot fossil andel. Anlegg med egen budpris beholder den.</span></div>
+      <details class="panel">
+        <summary>Følsomhet: til overs eller mangler mot rammen</summary>
+        <p class="hint">mrd kr. Felles budpris mot fossil andel. Anlegg med egen budpris beholder den.</p>
         <div class="tablewrap"><table class="sens" id="sens"></table></div>
-      </section>
+      </details>
 
-      <section class="panel">
-        <h2>Oppdatere data</h2>
+      <details class="panel">
+        <summary>Oppdatere data</summary>
         <p class="hint" style="max-width:70ch">Last inn en ny versjon av Excel-filen. Verktøyet finner tallene etter etikettene i arket (Anlegg, Fossile utslipp, Fossil andel, Fangstgrad, Budpris, Antall år driftsstøtte, Total ramme og Utslipper), ikke etter celleadresse. Rader kan derfor flyttes og anlegg legges til, så lenge etikettene står der.</p>
         <div class="addrow"><input type="file" id="file" accept=".xlsx,.xls"></div>
         <p class="status" id="loadstatus"></p>
-      </section>
+      </details>
     </main>
   </div>
 
@@ -335,9 +346,9 @@ function compute(st){
   const on=rows.filter(r=>r.on);
   const ordered=[...on].sort((a,b)=>st.order==='rand'?(a.rnd??1)-(b.rnd??1):st.order==='file'?a.idx-b.idx:st.order==='asc'?a.fossil-b.fossil:b.fossil-a.fossil);
   const B=st.budget*1e9; let cum=0;
-  for(const r of ordered){ const before=cum; cum+=r.need; r.cum=cum; r.status= cum<=B+1?'in':before<B?'part':'out'; }
+  for(const r of ordered){ if(cum+r.need<=B+1){ cum+=r.need; r.status='in'; } else r.status='out'; }
   const sum=k=>on.reduce((s,r)=>s+r[k],0);
-  return {rows,ordered,B,need:sum('need'),captured:sum('captured'),fosCap:sum('fosCap'),bio:sum('bio'),fossil:sum('fossil'),total:sum('total'),basisT:sum('basisT'),annual:sum('annual')};
+  return {rows,ordered,B,funded:cum,need:sum('need'),captured:sum('captured'),fosCap:sum('fosCap'),bio:sum('bio'),fossil:sum('fossil'),total:sum('total'),basisT:sum('basisT'),annual:sum('annual')};
 }
 
 /* ---------- Tegning ---------- */
@@ -348,11 +359,14 @@ function render(){
   $('k-rest').textContent=mrd(Math.abs(rest));
   $('k-rest-l').textContent=rest>=0?'Til overs':'Mangler';
   $('kpi-rest').className='kpi '+(rest>=0?'ok':'bad');
-  $('k-cap').textContent=nf0.format(R.captured/1000)+' kt';
-  $('k-cap-u').textContent='per år, hvorav '+nf0.format(R.fosCap/1000)+' kt fossilt';
   R.avgPrice=R.basisT>0?R.annual/R.basisT:S.price;
-  const maxT=R.avgPrice*S.years>0?R.B/(R.avgPrice*S.years):0;
-  $('k-max').textContent=nf0.format(maxT/1000)+' kt';
+  R.pay=payProfile(R);
+  const nIn=R.ordered.filter(r=>r.status==='in').length, nAll=R.ordered.length;
+  $('k-win-l').textContent='Utbetalt innen '+data.win[1];
+  $('k-win').textContent=mrd(R.pay.inWindow);
+  $('k-win-u').textContent=`mrd kr, ${nIn} av ${nAll} anlegg får plass`;
+  $('k-peak').textContent=mrd(R.pay.peak);
+  $('k-peak-u').textContent='mrd kr i '+R.pay.peakYears;
 
   // tabell
   const tb=$('tbl').tBodies[0]; tb.innerHTML='';
@@ -380,11 +394,9 @@ function drawBar(R){
   const max=Math.max(R.B,R.need)*1.04||1, x=v=>pad+(W-2*pad)*v/max;
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Støttebehov per anlegg stablet mot rammen">`;
   let acc=0;
-  R.ordered.forEach((r,i)=>{
+  [...R.ordered.filter(r=>r.status==='in'),...R.ordered.filter(r=>r.status!=='in')].forEach((r,i)=>{
     const x0=x(acc), x1=x(acc+r.need);
-    const inPart=Math.min(Math.max(R.B-acc,0),r.need);
-    if(inPart>0) s+=`<rect x="${x0}" y="${top}" width="${Math.max(x(acc+inPart)-x0-1,0)}" height="${bh}" fill="var(--accent)" opacity="${i%2?0.72:1}"><title>${esc(r.name)}: ${mrd(r.need)} mrd</title></rect>`;
-    if(inPart<r.need) s+=`<rect x="${x(acc+inPart)}" y="${top}" width="${Math.max(x1-x(acc+inPart)-1,0)}" height="${bh}" fill="var(--bad)" opacity="${i%2?0.72:1}"><title>${esc(r.name)}: ${mrd(r.need)} mrd</title></rect>`;
+    s+=`<rect x="${x0}" y="${top}" width="${Math.max(x1-x0-1,0)}" height="${bh}" fill="${r.status==='in'?'var(--accent)':'var(--bad)'}" opacity="${i%2?0.72:1}"><title>${esc(r.name)}: ${mrd(r.need)} mrd${r.status==='in'?'':' (får ikke plass)'}</title></rect>`;
     if(x1-x0>70) s+=`<text x="${x0+5}" y="${top+bh+16}">${esc(r.name.split(/[\s-]/)[0].slice(0,12))}</text>`;
     acc+=r.need;
   });
@@ -395,22 +407,27 @@ function drawBar(R){
   s+=`<text x="${pad}" y="18">0</text></svg>`;
   $('barchart').innerHTML=s;
   const n=R.ordered.length, inn=R.ordered.filter(r=>r.status==='in').length;
-  $('fitline').textContent=`${inn} av ${n} anlegg får full støtte`;
+  $('fitline').textContent=`${inn} av ${n} anlegg får plass. Et anlegg som ikke får plass, får avslag, ikke delvis støtte.`;
 }
 
 function payProfile(R){
-  const up=S.upfront/100, b0=S.vedtak, nb=Math.max(1,S.build), op0=b0+nb;
+  const up=S.upfront/100, b0=S.vedtak, nb=Math.max(1,S.build), op0=b0+nb, tot=R.funded;
   const build={}, ops={};
-  for(let k=0;k<nb;k++) build[b0+k]=R.need*up/nb;
-  for(let k=0;k<S.years;k++) ops[op0+k+1]=R.need*(1-up)/S.years;
-  return {build,ops,first:b0,last:op0+S.years,op0};
+  for(let k=0;k<nb;k++) build[b0+k]=tot*up/nb;
+  for(let k=0;k<S.years;k++) ops[op0+k+1]=tot*(1-up)/S.years;
+  const first=Math.min(data.win[0],b0), last=Math.max(data.win[1],op0+S.years);
+  const yrs=[]; for(let y=first;y<=last;y++) yrs.push(y);
+  const tot_=y=>(build[y]||0)+(ops[y]||0);
+  const peak=Math.max(...yrs.map(tot_),0);
+  const py=yrs.filter(y=>tot>0&&Math.abs(tot_(y)-peak)<1);
+  const peakYears=py.length>1?(py.length===py[py.length-1]-py[0]+1?py[0]+'–'+py[py.length-1]:py.join(', ')):(py[0]||'–');
+  const inWindow=yrs.filter(y=>y>=data.win[0]&&y<=data.win[1]).reduce((a,y)=>a+tot_(y),0);
+  return {build,ops,yrs,first,last:op0+S.years,op0,peak,peakYears,inWindow,tot:tot_};
 }
 function drawPay(R){
-  const P=payProfile(R);
-  const y0=Math.min(data.win[0],P.first), y1=Math.max(data.win[1],P.last);
-  const yrs=[]; for(let y=y0;y<=y1;y++)yrs.push(y);
+  const P=R.pay, yrs=P.yrs, y0=yrs[0];
   const bv=y=>P.build[y]||0, ov=y=>P.ops[y]||0;
-  const max=Math.max(...yrs.map(y=>bv(y)+ov(y)),1)*1.15;
+  const max=Math.max(P.peak,1)*1.15;
   const W=1000,H=220,l=48,r=10,t=14,b=30, bw=(W-l-r)/yrs.length;
   const Y=v=>t+(H-t-b)*(1-v/max);
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Utbetalinger per år">`;
@@ -423,12 +440,17 @@ function drawPay(R){
     if(a>0) s+=`<rect x="${x}" y="${Y(a)}" width="${w}" height="${Y(0)-Y(a)}" fill="var(--bio)"><title>${y}: ${mrd(a)} mrd (byggefase)</title></rect>`;
     if(o>0) s+=`<rect x="${x}" y="${Y(a+o)}" width="${w}" height="${Y(a)-Y(a+o)}" fill="var(--accent)"><title>${y}: ${mrd(o)} mrd (drift)</title></rect>`;
     if(yrs.length<=16||i%2===0) s+=`<text x="${l+i*bw+bw/2}" y="${H-10}" text-anchor="middle">${y}</text>`; });
-  s+=`<text x="${l}" y="${t-2}" text-anchor="start" style="font-size:10px">mrd NOK</text></svg>`;
+  s+=`<text x="${l}" y="${t-2}" text-anchor="start" style="font-size:10px">mrd kr</text></svg>`;
   $('paychart').innerHTML=s;
-  const inW=yrs.filter(y=>y>=data.win[0]&&y<=data.win[1]).reduce((a,y)=>a+bv(y)+ov(y),0);
-  $('payline').textContent=`${mrd(inW)} mrd utbetales i ${data.win[0]}–${data.win[1]}, siste utbetaling ${P.last}`;
-  R.inWindow=inW; R.pay=P;
+  $('payline').textContent=`${mrd(R.funded)} mrd for anleggene som får plass, siste utbetaling ${P.last}`;
+  // årstabell
+  const nz=yrs.filter(y=>P.tot(y)>0); const py=nz.length?yrs.filter(y=>y>=nz[0]&&y<=nz[nz.length-1]):[];
+  const row=(lab,f,cls)=>`<tr class="${cls||''}"><th>${lab}</th>${py.map(y=>`<td class="num">${f(y)>0?nf2.format(f(y)/1e9):'–'}</td>`).join('')}</tr>`;
+  $('yeartbl').innerHTML=`<thead><tr><th>mrd kr</th>${py.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>${row('Byggefase',bv)}${row('Drift',ov)}${row('Sum',y=>P.tot(y),'sum')}</tbody>`;
+  R.tsv=['mrd kr\t'+py.join('\t'),...[['Byggefase',bv],['Drift',ov],['Sum',y=>P.tot(y)]].map(([n,f])=>n+'\t'+py.map(y=>nf2.format(f(y)/1e9)).join('\t'))].join('\n');
+  lastTsv=R.tsv;
 }
+let lastTsv='';
 function niceStep(m){ const raw=m/4; const p=Math.pow(10,Math.floor(Math.log10(raw||1))); const n=raw/p; return (n<1.5?1:n<3?2:n<7?5:10)*p; }
 
 function drawSens(){
@@ -443,30 +465,6 @@ function drawSens(){
     h+='</tr>';
   }
   $('sens').innerHTML=h+'</tbody>';
-}
-
-function writeFindings(R,rest,maxT){
-  const L=[];
-  const be=R.basisT*S.years>0?R.B/(R.basisT*S.years):0;
-  L.push(`Med ${S.plants.some(p=>p.on&&p.pr!=null)?'en gjennomsnittlig budpris på '+nf0.format(R.avgPrice):nf0.format(S.price)} kr/tonn i ${S.years} år trenger de ${R.ordered.length} valgte anleggene <b>${mrd(R.need)} mrd kr</b>. Det er ${rest>=0?`<b>${mrd(rest)} mrd til overs</b>`:`<b>${mrd(-rest)} mrd for lite</b>`} i en ramme på ${nf1.format(S.budget)} mrd.`);
-  L.push(`Rammen går akkurat opp ved en gjennomsnittlig budpris på <b>${nf0.format(be)} kr/tonn</b>. Høyere bud enn det betyr at minst ett anlegg faller utenfor.`);
-  if(S.basis==='all'&&R.captured>0){
-    const bioShare=1-R.fosCap/R.captured, perFos=R.need/(R.fosCap*S.years);
-    L.push(`<b>${nf0.format(bioShare*100)} % av tonnene Enova betaler for er biogene.</b> De gir negative utslipp, men reduserer ikke de fossile utslippene. Regnet per tonn fossil CO₂ fjernet blir prisen ${nf0.format(perFos)} kr/tonn. Om fossil andel i avfallet er lavere enn antatt, øker støttebehovet, fordi det samme fossile tallet da betyr mer total CO₂ å fange.`);
-  } else if(S.basis==='fossil'){
-    L.push(`Når bare den fossile delen får budpris, betaler ikke Enova for de ${nf0.format((R.captured-R.fosCap)/1000)} kt biogen CO₂ som også fanges. Anleggene må da finne annen betaling for negative utslipp, for eksempel et marked for karbonfjerning, ellers blir prosjektene svakere.`);
-  }
-  const unk=R.rows.filter(r=>r.on&&r.bioUnknown);
-  if(unk.length){
-    L.push(S.basis==='all'
-      ? `<b>${unk.length} anlegg mangler tall for biogent CO₂</b> (${unk.map(r=>esc(r.name)).join(', ')}) og regnes med 0. Når Enova støtter all fanget CO₂, blir støttebehovet da for lavt hvis anleggene har biogene utslipp. Legg inn et anslag i tabellen for å se utslaget.`
-      : `${unk.length} anlegg mangler tall for biogent CO₂, men det påvirker ikke støttebehovet så lenge bare den fossile delen får budpris.`);
-  }
-  L.push(`Rammen tilsvarer om lag <b>${nf0.format(maxT/1000)} kt fanget CO₂ per år</b> i ${S.years} år. De valgte anleggene fanger ${nf0.format(R.captured/1000)} kt per år.`);
-  if(R.inWindow!=null){
-    L.push(`Rammen på ${nf1.format(S.budget)} mrd er ifølge høringsnotatet en øvre ramme for tilsagn fram til ${data.win[1]}, ikke for utbetalinger. Med vedtak i ${S.vedtak}, ${S.build} års bygging og ${S.upfront} % utbetalt i byggefasen betaler staten <b>${mrd(R.inWindow)} mrd</b> innen ${data.win[1]}. Resten, ${mrd(R.need-R.inWindow)} mrd, kommer fram til ${R.pay.last}, med topp på ${mrd(Math.max(...Object.keys({...R.pay.build,...R.pay.ops}).map(y=>(R.pay.build[y]||0)+(R.pay.ops[y]||0))))} mrd i ett enkelt år.`);
-  }
-  $('findings').innerHTML=L.map(x=>`<li>${x}</li>`).join('');
 }
 
 function fillAdd(){
@@ -485,6 +483,11 @@ for(const k of ['price','fossil','capture','years','budget','vedtak','build','up
 function shuffle(){ for(const p of S.plants) p.rnd=Math.random(); }
 $('p-order').addEventListener('change',e=>{S.order=e.target.value; if(S.order==='rand')shuffle(); $('reshuffle').hidden=S.order!=='rand'; render();});
 $('reshuffle').addEventListener('click',()=>{shuffle();render();});
+$('copytbl').addEventListener('click',()=>{
+  const ok=()=>{$('copystatus').textContent='Kopiert. Lim inn i Excel eller Word.';};
+  try{ navigator.clipboard.writeText(lastTsv).then(ok,()=>{selectTbl();}); }catch(e){ selectTbl(); }
+});
+function selectTbl(){ const r=document.createRange(); r.selectNodeContents($('yeartbl')); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); $('copystatus').textContent='Tabellen er merket. Trykk Ctrl+C for å kopiere.'; }
 $('b-all').addEventListener('click',()=>{S.basis='all';syncInputs();render();});
 $('b-fos').addEventListener('click',()=>{S.basis='fossil';syncInputs();render();});
 $('reset').addEventListener('click',()=>{const keep=S.plants.filter(p=>!p.fromFile);initState(data);S.plants.push(...keep);syncInputs();render();});
