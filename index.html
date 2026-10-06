@@ -365,7 +365,7 @@ function initState(d){
   const p=d.params;
   S={
     price:2000, fossil:Math.round((p.fossil??0.45)*100), capture:Math.round((p.capture??0.9)*100),
-    years:p.years??10, budget:(p.budget??20e9)/1e9, basis:'all', vedtak:S?S.vedtak:2027, build:S?S.build:4, upfront:S?S.upfront:40, order:S?S.order:'rand',
+    years:p.years??10, budget:4, basis:'all', vedtak:S?S.vedtak:2027, build:S?S.build:4, upfront:S?S.upfront:40, order:S?S.order:'rand',
     plants:d.plants.map((x,i)=>({...x,id:'f'+i,on:true,fo:null,bo:null,fromFile:true,rnd:Math.random()}))
   };
 }
@@ -376,7 +376,7 @@ function syncInputs(){
   const r=data.refs, pr=data.params;
   const lab=(k,txt)=>{$('s-'+k).textContent=r[k]?'fil: '+txt:'ikke i filen';};
   $('s-price').textContent='standard 2 000'; lab('capture',nf0.format(pr.capture*100)+' %');
-  lab('years',pr.years); lab('budget',nf1.format(pr.budget/1e9)+' mrd');
+  lab('years',pr.years); $('s-budget').textContent='standard 4 mrd';
   $('windowtxt').textContent='rammeperiode '+data.win[0]+'–'+data.win[1];
 }
 
