@@ -162,25 +162,20 @@ footer a{color:var(--accent)}
       </div>
       <h3 class="group">Utbetaling</h3>
       <div class="field">
-        <label for="p-vedtak">Vedtaksår <span class="src">antakelse</span></label>
+        <label for="p-vedtak">Vedtaksår</label>
         <div class="row"><input type="range" id="r-vedtak" min="2026" max="2032" step="1"><input type="number" id="p-vedtak" step="1"></div>
       </div>
       <div class="field">
-        <label for="p-build">Byggetid <span class="src">antakelse</span></label>
+        <label for="p-build">Byggetid</label>
         <div class="row"><input type="range" id="r-build" min="1" max="6" step="1"><input type="number" id="p-build" step="1"></div>
         <p class="hint">år fra vedtak til drift</p>
       </div>
       <div class="field">
-        <label for="p-upfront">Utbetalt i byggefasen <span class="src">antakelse</span></label>
+        <label for="p-upfront">Utbetalt i byggefasen</label>
         <div class="row"><input type="range" id="r-upfront" min="0" max="50" step="5"><input type="number" id="p-upfront" step="5"></div>
         <p class="hint">% av støtten</p>
       </div>
       <h3 class="group">Anlegg og fangst</h3>
-      <div class="field">
-        <label for="p-fossil">Fossil andel i avfallet <span class="src" id="s-fossil"></span></label>
-        <div class="row"><input type="range" id="r-fossil" min="20" max="80" step="1"><input type="number" id="p-fossil" step="1"></div>
-        <p class="hint" id="h-fossil">%. Brukes til å anslå biogent CO₂ for avfallsanlegg uten rapporterte tall.</p>
-      </div>
       <div class="field">
         <label for="p-capture">Fangstgrad <span class="src" id="s-capture"></span></label>
         <div class="row"><input type="range" id="r-capture" min="50" max="99" step="1"><input type="number" id="p-capture" step="1"></div>
@@ -228,7 +223,7 @@ footer a{color:var(--accent)}
           <select id="addsel"></select>
           <button type="button" class="btn" id="addbtn">Legg til</button>
         </div>
-        <p class="hint">Vedtaksår per anlegg følger det felles vedtaksåret til du endrer det. Fossilt og biogent CO₂ er tall virksomhetene har rapportert til Miljødirektoratet (norskeutslipp.no). Biogent CO₂ følger det rapporterte tallet når det finnes. Avfallsanlegg uten rapportert tall får et anslag ut fra felles fossil andel. Andre anlegg uten tall regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake.</p>
+        <p class="hint">Vedtaksår per anlegg følger det felles vedtaksåret til du endrer det. Fossilt og biogent CO₂ er tall virksomhetene har rapportert til Miljødirektoratet (norskeutslipp.no). Biogent CO₂ følger det rapporterte tallet når det finnes. Avfallsanlegg uten rapportert tall får et anslag ut fra fossil andel i regnearket. Andre anlegg uten tall regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake.</p>
       </section>
 
       <details class="panel">
@@ -375,12 +370,12 @@ function initState(d){
   };
 }
 function syncInputs(){
-  for(const k of ['price','fossil','capture','years','budget','vedtak','build','upfront']){ $('p-'+k).value=S[k]; $('r-'+k).value=S[k]; }
+  for(const k of ['price','capture','years','budget','vedtak','build','upfront']){ $('p-'+k).value=S[k]; $('r-'+k).value=S[k]; }
   $('p-order').value=S.order; $('reshuffle').hidden=S.order!=='rand';
   $('b-all').setAttribute('aria-pressed',S.basis==='all'); $('b-fos').setAttribute('aria-pressed',S.basis==='fossil');
   const r=data.refs, pr=data.params;
   const lab=(k,txt)=>{$('s-'+k).textContent=r[k]?'fil: '+txt:'ikke i filen';};
-  $('s-price').textContent='standard 2 000'; lab('fossil',nf0.format(pr.fossil*100)+' %'); lab('capture',nf0.format(pr.capture*100)+' %');
+  $('s-price').textContent='standard 2 000'; lab('capture',nf0.format(pr.capture*100)+' %');
   lab('years',pr.years); lab('budget',nf1.format(pr.budget/1e9)+' mrd');
   $('windowtxt').textContent='rammeperiode '+data.win[0]+'–'+data.win[1];
 }
@@ -431,7 +426,7 @@ function render(){
     tr.innerHTML=`<td><input type="checkbox" id="on-${r.id}" ${r.on?'checked':''} aria-label="Ta med ${esc(r.name)}"></td>
       <td class="name">${esc(r.name)}<small>${esc(r.sector)}${r.fromFile?' · celle '+r.ref:' · lagt til fra topp 100'}</small></td>
       <td><input type="number" class="${r.fo!=null?'own':''}" id="fo-${r.id}" min="0" step="1000" value="${Math.round(r.fossil)}" title="${r.fo!=null?'Eget tall. Tøm feltet for å bruke '+nf0.format(r.fossilFile)+' t fra filen.':'Fra filen (norskeutslipp.no 2023)'}" aria-label="Fossilt CO₂ for ${esc(r.name)}"></td>
-      <td><input type="number" class="${r.bioSrc==='own'?'own':r.bioSrc==='unk'?'unk':''}" id="bo-${r.id}" min="0" step="1000" value="${Math.round(r.bio)}" title="${{own:'Eget tall. Tøm feltet for å gå tilbake.',rep:'Rapportert til Miljødirektoratet',est:'Ikke rapportert. Anslått fra felles fossil andel ('+S.fossil+' %)',unk:'Ikke rapportert, regnes som 0. Legg inn et anslag.'}[r.bioSrc]}" aria-label="Biogent CO₂ for ${esc(r.name)}"></td>
+      <td><input type="number" class="${r.bioSrc==='own'?'own':r.bioSrc==='unk'?'unk':''}" id="bo-${r.id}" min="0" step="1000" value="${Math.round(r.bio)}" title="${{own:'Eget tall. Tøm feltet for å gå tilbake.',rep:'Rapportert til Miljødirektoratet',est:'Ikke rapportert. Anslått fra fossil andel i regnearket ('+S.fossil+' %)',unk:'Ikke rapportert, regnes som 0. Legg inn et anslag.'}[r.bioSrc]}" aria-label="Biogent CO₂ for ${esc(r.name)}"></td>
       <td><input type="number" class="${r.pr!=null?'own':''}" id="pr-${r.id}" min="0" step="50" value="${Math.round(r.price)}" title="${r.pr!=null?'Egen budpris. Tøm feltet for å følge felles budpris.':'Følger felles budpris'}" aria-label="Budpris for ${esc(r.name)}"></td>
       <td><input type="number" class="${r.vd!=null?'own':''}" id="vd-${r.id}" min="2025" max="2040" step="1" value="${r.vd??S.vedtak}" title="${r.vd!=null?'Eget vedtaksår. Tøm feltet for å følge felles vedtaksår.':'Følger felles vedtaksår'}" aria-label="Vedtaksår for ${esc(r.name)}"></td>
       <td class="num">${nf0.format(r.total)}</td>
@@ -442,8 +437,6 @@ function render(){
   }
   $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num bio">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td></tr>`;
 
-  const nEst=R.rows.filter(r=>r.on&&r.bioSrc==='est').length;
-  $('h-fossil').textContent=`%. Brukes til å anslå biogent CO₂ for avfallsanlegg uten rapporterte tall (nå ${nEst} anlegg).`;
   drawBar(R); drawPay(R); drawSens();
   fillAdd();
 }
@@ -540,7 +533,7 @@ function fillAdd(){
 }
 
 /* ---------- Hendelser ---------- */
-for(const k of ['price','fossil','capture','years','budget','vedtak','build','upfront']){
+for(const k of ['price','capture','years','budget','vedtak','build','upfront']){
   for(const pre of ['p-','r-']) $(pre+k).addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(isNaN(v))return; S[k]=v; $((pre==='p-'?'r-':'p-')+k).value=v; render(); });
 }
 function shuffle(){ for(const p of S.plants) p.rnd=Math.random(); }
