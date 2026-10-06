@@ -48,8 +48,6 @@ header .lede{color:var(--hdr-muted)}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
 aside.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow-y:auto;gap:12px}
 h3.group{font-size:.72rem;font-family:var(--f-mono);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
-details.panel>summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font-size:1.1rem;list-style-position:inside}
-details.panel:not([open]){gap:0}
 .yeartbl{min-width:0;width:auto}
 .yeartbl th,.yeartbl td{padding:5px 8px}
 .yeartbl tr.sum td,.yeartbl tr.sum th{font-weight:600;border-top:2px solid var(--ink)}
@@ -105,10 +103,6 @@ td input[id^=vd-]{width:72px}
 .findings b{font-weight:600}
 .addrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .addrow select{flex:1;min-width:0;max-width:100%}
-.sens td,.sens th{text-align:right;min-width:0}
-.sens{min-width:480px}
-.sens td.cur{outline:2px solid var(--accent);outline-offset:-2px}
-.sens td.neg{color:var(--ink);background:var(--bad-soft)} .sens td.pos{color:var(--accent)}
 .status{font-size:.82rem;color:var(--muted)}
 .status.err{color:var(--bad-text)}
 .sectionhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
@@ -226,19 +220,6 @@ footer a{color:var(--accent)}
         <p class="hint">Vedtaksår per anlegg følger det felles vedtaksåret til du endrer det. Fossilt og biogent CO₂ er tall virksomhetene har rapportert til Miljødirektoratet (norskeutslipp.no). Biogent CO₂ følger det rapporterte tallet når det finnes. Avfallsanlegg uten rapportert tall får et anslag ut fra fossil andel i regnearket. Andre anlegg uten tall regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake.</p>
       </section>
 
-      <details class="panel">
-        <summary>Følsomhet: til overs eller mangler mot rammen</summary>
-        <p class="hint">mrd kr. Felles budpris mot fangstgrad. Anlegg med egen budpris beholder den.</p>
-        <div class="tablewrap"><table class="sens" id="sens"></table></div>
-      </details>
-
-      <details class="panel">
-        <summary>Oppdatere data</summary>
-        <p class="hint" style="max-width:70ch">Last inn en ny versjon av Excel-filen. Verktøyet finner tallene etter etikettene i arket (Anlegg, Fossile utslipp, Fossil andel, Fangstgrad, Budpris, Antall år driftsstøtte, Total ramme og Utslipper), ikke etter celleadresse. Rader kan derfor flyttes og anlegg legges til, så lenge etikettene står der. Du kan også laste inn en ny utskrift av biogent CO₂ fra norskeutslipp.no (kolonnene Anleggsnavn, År, Årlig utslipp til luft og Enhet). Verktøyet kjenner igjen hvilken fil det er.</p>
-        <div class="addrow"><input type="file" id="file" accept=".xlsx,.xls"></div>
-        <p class="status" id="loadstatus"></p>
-        <p class="status" id="biostatus"></p>
-      </details>
     </main>
   </div>
 
@@ -352,9 +333,9 @@ function bioRep(p){
   return t?BIO.map.get(norm(t.name))??null:null;
 }
 function loadBio(wb,name){
-  const b=parseBio(wb), st=$('biostatus');
-  if(!b){ st.textContent='Fant ikke biogene tall i '+name+'.'; st.className='status err'; return; }
-  BIO=b; st.textContent=`Biogent CO₂ lest fra ${name}: ${b.map.size} anlegg i ${b.year}.`; st.className='status';
+  const b=parseBio(wb);
+  if(!b){ console.warn('Fant ikke biogene tall i '+name); return; }
+  BIO=b;
   $('th-bio').textContent='Biogent, '+b.year;
   if(data) render();
 }
@@ -437,7 +418,7 @@ function render(){
   }
   $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num bio">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td></tr>`;
 
-  drawBar(R); drawPay(R); drawSens();
+  drawBar(R); drawPay(R);
   fillAdd();
 }
 
@@ -509,20 +490,6 @@ function drawPay(R){
 let lastTsv='';
 function niceStep(m){ const raw=m/4; const p=Math.pow(10,Math.floor(Math.log10(raw||1))); const n=raw/p; return (n<1.5?1:n<3?2:n<7?5:10)*p; }
 
-function drawSens(){
-  const prices=[1000,1400,1700,2000,2500,3000];
-  if(!prices.includes(S.price)) prices.push(S.price), prices.sort((a,b)=>a-b);
-  const fss=[80,85,90,95]; if(!fss.includes(S.capture)) fss.push(S.capture), fss.sort((a,b)=>a-b);
-  let h='<thead><tr><th>Budpris \\ fangstgrad</th>'+fss.map(f=>`<th>${f} %</th>`).join('')+'</tr></thead><tbody>';
-  for(const p of prices){
-    h+=`<tr><th class="num">${nf0.format(p)} kr/t</th>`;
-    for(const f of fss){ const R=compute({...S,price:p,capture:f}); const v=(R.B-R.need)/1e9;
-      h+=`<td class="num ${v<0?'neg':'pos'} ${p===S.price&&f===S.capture?'cur':''}">${v>0?'+':''}${nf1.format(v)}</td>`; }
-    h+='</tr>';
-  }
-  $('sens').innerHTML=h+'</tbody>';
-}
-
 function fillAdd(){
   const sel=$('addsel'), cur=sel.value;
   const have=new Set(S.plants.map(p=>p.fossil));
@@ -562,20 +529,12 @@ $('addbtn').addEventListener('click',()=>{
   S.plants.push({id:'t'+Date.now(),name:t.name,fossil:t.tonn,sector:isWaste?'Avfall':t.sector,on:true,fo:null,bo:null,fromFile:false,rnd:Math.random()});
   render();
 });
-$('file').addEventListener('change',async e=>{
-  const f=e.target.files[0]; if(!f)return;
-  try{ const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}); if(findBioGrid(wb)) loadBio(wb,f.name); else load(wb,f.name); }
-  catch(err){ $('loadstatus').textContent='Kunne ikke lese filen: '+err.message+'. Sjekk at det er en .xlsx-fil.'; $('loadstatus').className='status err'; }
-});
-
 function load(wb,name){
   data=parseWorkbook(wb);
   const keep=S?S.plants.filter(p=>!p.fromFile):[];
   initState(data); S.plants.push(...keep);
   syncInputs(); render();
-  const st=$('loadstatus');
-  st.textContent=`Lest fra ${name}, ark «${data.sheetName}»: ${data.plants.length} anlegg, ${data.top.length} rader i topp 100-listen.`+(data.warnings.length?' Advarsel: '+data.warnings.join(' '):'');
-  st.className='status'+(data.warnings.length?' err':'');
+  if(data.warnings.length) console.warn(name+': '+data.warnings.join(' '));
 }
 
 function b64ToBuf(b){const s=atob(b);const a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a;}

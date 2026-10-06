@@ -17,8 +17,6 @@ Utbetalingsprofilen (vedtaksår, byggetid og andel utbetalt i byggefasen) følge
 
 Formlene i regnearket brukes ikke; verktøyet regner selv ut fra grunntallene.
 
-I verktøyet kan man også laste inn en annen Excel-fil fra egen maskin uten å endre noe her.
-
 ## Publisere
 
 Gå til **Settings → Pages**, velg **Deploy from a branch**, deretter `main` og `/ (root)`. Siden blir tilgjengelig på `https://<brukernavn>.github.io/<repo>/`.
