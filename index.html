@@ -6,32 +6,40 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Budsjettkalkulator for CCS (Beta)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
 <style>
 /* Layout: parameter-panel til venstre (sticky på desktop), resultat og anleggstabell til høyre; én kolonne på mobil */
 :root{
-  --bg:#eef1ef; --surface:#ffffff; --ink:#1a2224; --muted:#5a6765; --line:#d3dad7;
-  --accent:#0e5a62; --accent-soft:#d5e7e8; --bio:#a86a14; --bio-soft:#f3e4cc;
-  --ok:#2b7a4b; --warn:#a86a14; --bad:#b1382b; --bad-soft:#f6dcd8; --window:#e2ece9;
-  --f-display:"Archivo", "Helvetica Neue", Arial, sans-serif;
-  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
-  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  /* Palett: Aqua #5cafaa, Petrol #00576e, Noir #002433, Blue #006dbe, Coral #ff5f4c, Light Coral #f1957c, Light Grey #efefef, White #ffffff.
+     Tekstfarger har minst 4,5:1 kontrast; Aqua og Coral brukes bare som flater. */
+  --bg:#efefef; --surface:#ffffff; --ink:#002433; --muted:#59717a; --line:#d9dee0;
+  --accent:#00576e; --accent-soft:#d9e6e9; --own:#006dbe; --biotxt:#37777a;
+  --c-build:#5cafaa; --c-ops:#00576e; --bad:#ff5f4c; --bad-text:#b24d44; --bad-soft:#f8cabe; --warn:#ff5f4c; --window:#efefef;
+  --hdr-bg:#002433; --hdr-ink:#ffffff; --hdr-eyebrow:#5cafaa; --hdr-muted:#efefef;
+  --f-display:"DM Sans", "Segoe UI", system-ui, sans-serif;
+  --f-body:"DM Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"DM Sans", "Segoe UI", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#111517; --surface:#192022; --ink:#e3e8e6; --muted:#97a3a0; --line:#2b3537;
-  --accent:#53b4bc; --accent-soft:#1d3a3d; --bio:#e2a54e; --bio-soft:#3b2f1c;
-  --ok:#62c08a; --warn:#e2a54e; --bad:#e8786a; --bad-soft:#3e2420; --window:#1d2a2a; color-scheme:dark}}
+  --bg:#002433; --surface:#143643; --ink:#efefef; --muted:#a2aeb3; --line:#26545d;
+  --accent:#5cafaa; --accent-soft:#1d4a52; --own:#66a7d8; --biotxt:#8fd0cb;
+  --c-build:#5cafaa; --c-ops:#efefef; --bad:#ff5f4c; --bad-text:#f1957c; --bad-soft:#5b4246; --warn:#ff5f4c; --window:#0b2d3b;
+  --hdr-bg:#143643; --hdr-ink:#ffffff; --hdr-eyebrow:#5cafaa; --hdr-muted:#efefef; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#111517; --surface:#192022; --ink:#e3e8e6; --muted:#97a3a0; --line:#2b3537;
-  --accent:#53b4bc; --accent-soft:#1d3a3d; --bio:#e2a54e; --bio-soft:#3b2f1c;
-  --ok:#62c08a; --warn:#e2a54e; --bad:#e8786a; --bad-soft:#3e2420; --window:#1d2a2a; color-scheme:dark}
+  --bg:#002433; --surface:#143643; --ink:#efefef; --muted:#a2aeb3; --line:#26545d;
+  --accent:#5cafaa; --accent-soft:#1d4a52; --own:#66a7d8; --biotxt:#8fd0cb;
+  --c-build:#5cafaa; --c-ops:#efefef; --bad:#ff5f4c; --bad-text:#f1957c; --bad-soft:#5b4246; --warn:#ff5f4c; --window:#0b2d3b;
+  --hdr-bg:#143643; --hdr-ink:#ffffff; --hdr-eyebrow:#5cafaa; --hdr-muted:#efefef; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:24px 48px}
 .wrap{max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
-h1{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;letter-spacing:-.01em}
+h1{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:600;letter-spacing:-.01em}
 sub{font-size:.6em;line-height:0}
-h2{font-size:1.1rem;font-weight:700}
+h2{font-size:1.1rem;font-weight:600}
+header{background:var(--hdr-bg);color:var(--hdr-ink);border-radius:6px;padding:20px 22px}
+header .eyebrow{color:var(--hdr-eyebrow)}
+header .lede{color:var(--hdr-muted)}
 .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
 .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
@@ -39,8 +47,8 @@ h2{font-size:1.1rem;font-weight:700}
 @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
 aside.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow-y:auto;gap:12px}
-h3.group{font-size:.72rem;font-family:var(--f-mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
-details.panel>summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:1.1rem;list-style-position:inside}
+h3.group{font-size:.72rem;font-family:var(--f-mono);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+details.panel>summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font-size:1.1rem;list-style-position:inside}
 details.panel:not([open]){gap:0}
 .yeartbl{min-width:0;width:auto}
 .yeartbl th,.yeartbl td{padding:5px 8px}
@@ -64,9 +72,9 @@ button.btn:hover{background:var(--accent-soft)}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
 @media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .kpi{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.kpi .v{font-family:var(--f-display);font-weight:800;font-size:1.65rem;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .v{font-family:var(--f-display);font-weight:600;font-size:1.65rem;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .kpi .u{font-size:.82rem;color:var(--muted)}
-.kpi.bad .v{color:var(--bad)} .kpi.ok .v{color:var(--ok)}
+.kpi.bad .v{color:var(--bad-text)} .kpi.ok .v{color:var(--accent)}
 .chart svg{width:100%;height:auto;display:block}
 .chart text{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
@@ -74,7 +82,7 @@ button.btn:hover{background:var(--accent-soft)}
 .tablewrap{overflow-x:auto;margin-inline:-18px;padding-inline:18px}
 table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:680px}
 th,td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;vertical-align:bottom}
+th{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;vertical-align:bottom}
 td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
 td.name{white-space:normal;min-width:160px}
 th{white-space:normal}
@@ -82,16 +90,16 @@ td.name small{display:block;color:var(--muted);font-size:.75rem}
 tr.off td{opacity:.45}
 tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--ink)}
 td input[type=number]{width:62px;text-align:right}
-td input[id^=bo-],tfoot td.bio{color:var(--ok)}
-td input.own{border-color:var(--accent);color:var(--accent);font-weight:500}
+td input[id^=bo-],tfoot td.bio{color:var(--biotxt)}
+td input.own{border-color:var(--own);color:var(--own);font-weight:600}
 td input.unk{border-style:dashed;border-color:var(--warn);color:var(--muted)}
 td input[id^=fo-],td input[id^=bo-]{width:84px}
-td input[id^=pr-]{width:64px}
+td input[id^=pr-]{width:72px}
 td input[id^=vd-]{width:72px}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;padding:1px 7px;border-radius:99px;border:1px solid}
-.pill.in{color:var(--ok);border-color:var(--ok)}
+.pill.in{color:var(--accent);border-color:var(--accent)}
 .pill.part{color:var(--warn);border-color:var(--warn)}
-.pill.out{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
+.pill.out{color:var(--bad-text);border-color:var(--bad);background:var(--bad-soft)}
 .xbtn{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px}
 .findings{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;max-width:75ch}
 .findings b{font-weight:600}
@@ -100,9 +108,9 @@ td input[id^=vd-]{width:72px}
 .sens td,.sens th{text-align:right;min-width:0}
 .sens{min-width:480px}
 .sens td.cur{outline:2px solid var(--accent);outline-offset:-2px}
-.sens td.neg{color:var(--bad)} .sens td.pos{color:var(--ok)}
+.sens td.neg{color:var(--ink);background:var(--bad-soft)} .sens td.pos{color:var(--accent)}
 .status{font-size:.82rem;color:var(--muted)}
-.status.err{color:var(--bad)}
+.status.err{color:var(--bad-text)}
 .sectionhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
 footer{font-size:.8rem;color:var(--muted);max-width:80ch}
 footer a{color:var(--accent)}
@@ -192,7 +200,7 @@ footer a{color:var(--accent)}
       <section class="panel chart">
         <div class="sectionhead"><h2>Utbetalinger per år</h2><span class="status" id="payline"></span></div>
         <div id="paychart"></div>
-        <div class="legend"><span><i style="background:var(--bio)"></i>Byggefase</span><span><i style="background:var(--accent)"></i>Drift (betales året etter lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
+        <div class="legend"><span><i style="background:var(--c-build)"></i>Byggefase</span><span><i style="background:var(--c-ops)"></i>Drift (betales året etter lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
         <div class="tablewrap"><table class="yeartbl" id="yeartbl"></table></div>
         <div class="addrow"><button type="button" class="btn" id="copytbl">Kopier tabellen</button><span class="status" id="copystatus"></span></div>
         <p class="hint">Bare anlegg som får plass innenfor rammen er med. Byggeandelen fordeles jevnt over byggeårene. Resten betales per tonn året etter lagring, i tråd med høringsnotatet (kap. 9.2). Notatets tak på 50 % av investeringskostnaden er ikke med.</p>
@@ -201,7 +209,7 @@ footer a{color:var(--accent)}
       <section class="panel chart">
         <div class="sectionhead"><h2>Støttebehov per anlegg mot rammen</h2><span class="status" id="fitline"></span></div>
         <div id="barchart"></div>
-        <div class="legend"><span><i style="background:var(--accent)"></i>Får plass</span><span><i style="background:var(--bad)"></i>Får ikke plass</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
+        <div class="legend"><span><i style="background:var(--c-ops)"></i>Får plass</span><span><i style="background:var(--bad)"></i>Får ikke plass</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
       </section>
 
       <section class="panel">
@@ -446,7 +454,7 @@ function drawBar(R){
   let acc=0;
   [...R.ordered.filter(r=>r.status==='in'),...R.ordered.filter(r=>r.status!=='in')].forEach((r,i)=>{
     const x0=x(acc), x1=x(acc+r.need);
-    s+=`<rect x="${x0}" y="${top}" width="${Math.max(x1-x0-1,0)}" height="${bh}" fill="${r.status==='in'?'var(--accent)':'var(--bad)'}" opacity="${i%2?0.72:1}"><title>${esc(r.name)}: ${mrd(r.need)} mrd${r.status==='in'?'':' (får ikke plass)'}</title></rect>`;
+    s+=`<rect x="${x0}" y="${top}" width="${Math.max(x1-x0-1,0)}" height="${bh}" fill="${r.status==='in'?'var(--c-ops)':'var(--bad)'}" opacity="${i%2?0.72:1}"><title>${esc(r.name)}: ${mrd(r.need)} mrd${r.status==='in'?'':' (får ikke plass)'}</title></rect>`;
     if(x1-x0>70) s+=`<text x="${x0+5}" y="${top+bh+16}">${esc(r.name.split(/[\s-]/)[0].slice(0,12))}</text>`;
     acc+=r.need;
   });
@@ -491,8 +499,8 @@ function drawPay(R){
   const step=niceStep(max/1e9);
   for(let v=0;v<=max/1e9;v+=step){ const yy=Y(v*1e9); s+=`<line x1="${l}" x2="${W-r}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${l-6}" y="${yy+4}" text-anchor="end">${nf1.format(v)}</text>`; }
   yrs.forEach((y,i)=>{ const a=bv(y), o=ov(y), x=l+i*bw+bw*0.15, w=bw*0.7;
-    if(a>0) s+=`<rect x="${x}" y="${Y(a)}" width="${w}" height="${Y(0)-Y(a)}" fill="var(--bio)"><title>${y}: ${mrd(a)} mrd (byggefase)</title></rect>`;
-    if(o>0) s+=`<rect x="${x}" y="${Y(a+o)}" width="${w}" height="${Y(a)-Y(a+o)}" fill="var(--accent)"><title>${y}: ${mrd(o)} mrd (drift)</title></rect>`;
+    if(a>0) s+=`<rect x="${x}" y="${Y(a)}" width="${w}" height="${Y(0)-Y(a)}" fill="var(--c-build)"><title>${y}: ${mrd(a)} mrd (byggefase)</title></rect>`;
+    if(o>0) s+=`<rect x="${x}" y="${Y(a+o)}" width="${w}" height="${Y(a)-Y(a+o)}" fill="var(--c-ops)"><title>${y}: ${mrd(o)} mrd (drift)</title></rect>`;
     if(yrs.length<=16||i%2===0) s+=`<text x="${l+i*bw+bw/2}" y="${H-10}" text-anchor="middle">${y}</text>`; });
   s+=`<text x="${l}" y="${t-2}" text-anchor="start" style="font-size:10px">mrd kr</text></svg>`;
   $('paychart').innerHTML=s;
