@@ -198,18 +198,18 @@ footer a{color:var(--accent)}
       </section>
 
       <section class="panel chart">
+        <div class="sectionhead"><h2>Støttebehov per anlegg</h2><span class="status" id="fitline"></span></div>
+        <div id="barchart"></div>
+        <div class="legend"><span><i style="background:var(--c-ops)"></i>Får plass</span><span><i style="background:var(--bad)"></i>Får ikke plass</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
+      </section>
+
+      <section class="panel chart">
         <div class="sectionhead"><h2>Utbetalinger per år</h2><span class="status" id="payline"></span></div>
         <div id="paychart"></div>
         <div class="legend"><span><i style="background:var(--c-build)"></i>Byggefase</span><span><i style="background:var(--c-ops)"></i>Drift (betales året etter lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
         <div class="tablewrap"><table class="yeartbl" id="yeartbl"></table></div>
         <div class="addrow"><button type="button" class="btn" id="copytbl">Kopier tabellen</button><span class="status" id="copystatus"></span></div>
         <p class="hint">Bare anlegg som får plass innenfor rammen er med. Byggeandelen fordeles jevnt over byggeårene. Resten betales per tonn året etter lagring, i tråd med høringsnotatet (kap. 9.2). Notatets tak på 50 % av investeringskostnaden er ikke med.</p>
-      </section>
-
-      <section class="panel chart">
-        <div class="sectionhead"><h2>Støttebehov per anlegg mot rammen</h2><span class="status" id="fitline"></span></div>
-        <div id="barchart"></div>
-        <div class="legend"><span><i style="background:var(--c-ops)"></i>Får plass</span><span><i style="background:var(--bad)"></i>Får ikke plass</span><span><i style="background:var(--ink)"></i>Ramme</span></div>
       </section>
 
       <section class="panel">
