@@ -82,6 +82,7 @@ td.name small{display:block;color:var(--muted);font-size:.75rem}
 tr.off td{opacity:.45}
 tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--ink)}
 td input[type=number]{width:62px;text-align:right}
+td input[id^=bo-],tfoot td.bio{color:var(--ok)}
 td input.own{border-color:var(--accent);color:var(--accent);font-weight:500}
 td input.unk{border-style:dashed;border-color:var(--warn);color:var(--muted)}
 td input[id^=fo-],td input[id^=bo-]{width:84px}
@@ -430,7 +431,7 @@ function render(){
       <td>${r.fromFile?'':`<button class="xbtn" id="rm-${r.id}" aria-label="Fjern ${esc(r.name)}">×</button>`}</td>`;
     tb.appendChild(tr);
   }
-  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td></tr>`;
+  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num bio">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td><td></td></tr>`;
 
   const nEst=R.rows.filter(r=>r.on&&r.bioSrc==='est').length;
   $('h-fossil').textContent=`%. Brukes til å anslå biogent CO₂ for avfallsanlegg uten rapporterte tall (nå ${nEst} anlegg).`;
