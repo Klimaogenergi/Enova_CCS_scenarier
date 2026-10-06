@@ -194,7 +194,7 @@ footer a{color:var(--accent)}
         <div class="kpi"><span class="eyebrow">Støttebehov</span><span class="v" id="k-need"></span><span class="u">mrd kr for valgte anlegg, hele perioden</span></div>
         <div class="kpi" id="kpi-rest"><span class="eyebrow" id="k-rest-l">Til overs</span><span class="v" id="k-rest"></span><span class="u">mrd kr mot rammen</span></div>
         <div class="kpi"><span class="eyebrow" id="k-win-l">Utbetalt innen 2032</span><span class="v" id="k-win"></span><span class="u" id="k-win-u"></span></div>
-        <div class="kpi"><span class="eyebrow">Største årlige utbetaling</span><span class="v" id="k-peak"></span><span class="u" id="k-peak-u"></span></div>
+        <div class="kpi"><span class="eyebrow">CO<sub>2</sub> fanget årlig</span><span class="v" id="k-cap"></span><span class="u" id="k-cap-u"></span></div>
       </section>
 
       <section class="panel chart">
@@ -420,8 +420,9 @@ function render(){
   $('k-win-l').textContent='Utbetalt innen '+data.win[1];
   $('k-win').textContent=mrd(R.pay.inWindow);
   $('k-win-u').textContent=`mrd kr, ${nIn} av ${nAll} anlegg får plass`;
-  $('k-peak').textContent=mrd(R.pay.peak);
-  $('k-peak-u').textContent='mrd kr i '+R.pay.peakYears;
+  const capIn=R.ordered.filter(r=>r.status==='in').reduce((s,r)=>s+r.captured,0);
+  $('k-cap').textContent=nf0.format(capIn);
+  $('k-cap-u').textContent=nIn===nAll?'tonn per år':`tonn per år fra anleggene som får plass (${nf0.format(R.captured)} t for alle valgte)`;
 
   // tabell
   const tb=$('tbl').tBodies[0]; tb.innerHTML='';
