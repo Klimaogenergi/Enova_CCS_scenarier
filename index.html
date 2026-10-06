@@ -368,8 +368,9 @@ function compute(st){
     const fs=st.fossil/100, fossil=p.fo??p.fossil, waste=p.sector==='Avfall';
     const br=bioRep(p), bioEst=waste&&fs>0?fossil*(1-fs)/fs:0, bio=p.bo??br??bioEst;
     const bioSrc=p.bo!=null?'own':br!=null?'rep':waste?'est':'unk';
-    const total=fossil+bio, captured=total*cap, fosCap=fossil*cap;
-    const basisT=st.basis==='all'?captured:fosCap;
+    // Med «Bare fossil del» fanges og støttes bare den fossile delen.
+    const total=fossil+bio, fosCap=fossil*cap, captured=st.basis==='all'?total*cap:fosCap;
+    const basisT=captured;
     const price=p.pr??st.price;
     const annual=basisT*price, need=annual*st.years;
     return {...p,fossilFile:p.fossil,fossil,br,bio,bioSrc,waste,price,total,captured,fosCap,basisT,annual,need,idx:i};
