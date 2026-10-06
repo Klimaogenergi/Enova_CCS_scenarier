@@ -1,4 +1,4 @@
-# Enova CCS-regnestykket
+# Budsjettkalkulator for CCS (Beta)
 
 Et nettverktøy som viser hvor mye karbonfangst og -lagring (CCS) Enovas foreslåtte ramme kan finansiere, med justerbare forutsetninger. Første versjon dekker avfallsforbrenning.
 
