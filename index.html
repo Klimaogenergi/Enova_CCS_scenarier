@@ -374,7 +374,7 @@ function syncInputs(){
   $('p-order').value=S.order; $('reshuffle').hidden=S.order!=='rand';
   $('b-all').setAttribute('aria-pressed',S.basis==='all'); $('b-fos').setAttribute('aria-pressed',S.basis==='fossil');
   const r=data.refs, pr=data.params;
-  const lab=(k,txt)=>{$('s-'+k).textContent=r[k]?'fil: '+txt:'ikke i filen';};
+  const lab=(k,txt)=>{$('s-'+k).textContent='standard '+txt;};
   $('s-price').textContent='standard 2 000'; lab('capture',nf0.format(pr.capture*100)+' %');
   lab('years',pr.years); $('s-budget').textContent='standard 4 mrd';
   $('windowtxt').textContent='rammeperiode '+data.win[0]+'–'+data.win[1];
