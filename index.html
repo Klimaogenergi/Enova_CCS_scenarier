@@ -405,7 +405,7 @@ function render(){
   for(const r of R.rows){
     const tr=document.createElement('tr'); if(!r.on)tr.className='off';
     tr.innerHTML=`<td><input type="checkbox" id="on-${r.id}" ${r.on?'checked':''} aria-label="Ta med ${esc(r.name)}"></td>
-      <td class="name">${esc(r.name)}<small>${esc(r.sector)}${r.fromFile?' · celle '+r.ref:' · lagt til fra topp 100'}</small></td>
+      <td class="name">${esc(r.name)}<small>${esc(r.sector)}${r.fromFile?' · celle '+r.ref:''}</small></td>
       <td><input type="number" class="${r.fo!=null?'own':''}" id="fo-${r.id}" min="0" step="1000" value="${Math.round(r.fossil)}" title="${r.fo!=null?'Eget tall. Tøm feltet for å bruke '+nf0.format(r.fossilFile)+' t fra filen.':'Fra filen (norskeutslipp.no 2023)'}" aria-label="Fossilt CO₂ for ${esc(r.name)}"></td>
       <td><input type="number" class="${r.bioSrc==='own'?'own':r.bioSrc==='unk'?'unk':''}" id="bo-${r.id}" min="0" step="1000" value="${Math.round(r.bio)}" title="${{own:'Eget tall. Tøm feltet for å gå tilbake.',rep:'Rapportert til Miljødirektoratet',est:'Ikke rapportert. Anslått fra fossil andel i regnearket ('+S.fossil+' %)',unk:'Ikke rapportert, regnes som 0. Legg inn et anslag.'}[r.bioSrc]}" aria-label="Biogent CO₂ for ${esc(r.name)}"></td>
       <td><input type="number" class="${r.pr!=null?'own':''}" id="pr-${r.id}" min="0" step="50" value="${Math.round(r.price)}" title="${r.pr!=null?'Egen budpris. Tøm feltet for å følge felles budpris.':'Følger felles budpris'}" aria-label="Budpris for ${esc(r.name)}"></td>
