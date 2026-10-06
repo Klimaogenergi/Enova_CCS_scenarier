@@ -375,7 +375,7 @@ function compute(st){
     return {...p,fossilFile:p.fossil,fossil,br,bio,bioSrc,waste,price,total,captured,fosCap,basisT,annual,need,idx:i};
   });
   const on=rows.filter(r=>r.on);
-  const ordered=[...on].sort((a,b)=>st.order==='rand'?(a.rnd??1)-(b.rnd??1):st.order==='file'?a.idx-b.idx:st.order==='asc'?a.fossil-b.fossil:b.fossil-a.fossil);
+  const ordered=[...on].sort((a,b)=>st.order==='rand'?(a.rnd??1)-(b.rnd??1):st.order==='file'?a.idx-b.idx:st.order==='asc'?a.total-b.total:b.total-a.total);
   const B=st.budget*1e9; let cum=0;
   for(const r of ordered){ if(cum+r.need<=B+1){ cum+=r.need; r.status='in'; } else r.status='out'; }
   const sum=k=>on.reduce((s,r)=>s+r[k],0);
