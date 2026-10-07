@@ -456,7 +456,7 @@ function drawBar(R){
   s+=`<text x="${pad}" y="18">0</text></svg>`;
   $('barchart').innerHTML=s;
   const n=R.ordered.length, inn=R.ordered.filter(r=>r.status==='in').length;
-  $('fitline').textContent=`${inn} av ${n} anlegg får plass. Et anlegg som ikke får plass, får avslag, ikke delvis støtte.`;
+  $('fitline').textContent=`${inn} av ${n} anlegg får plass.`;
 }
 
 function payProfile(R){
