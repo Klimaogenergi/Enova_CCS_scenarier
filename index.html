@@ -410,7 +410,7 @@ function render(){
   $('k-cap-u').textContent=nIn===nAll?'tonn per år':`tonn per år fra anleggene som får plass (${nf0.format(R.captured)} t for alle valgte)`;
   $('k-pot').textContent=nf0.format(POTENTIAL_T);
   const share=Math.min(capIn/POTENTIAL_T,1);
-  $('k-share').textContent=nf1.format(share*100)+' %';
+  $('k-share').textContent=nf0.format(Math.round(share*100))+' %';
   const ang=share*2*Math.PI, x=32+30*Math.sin(ang), y=32-30*Math.cos(ang);
   $('k-pie').setAttribute('aria-label',`${nf1.format(share*100)} prosent av CCS-potensialet`);
   $('k-pie').innerHTML=`<circle cx="32" cy="32" r="30" fill="var(--pie-rest)"/>`+(share>=0.9999?`<circle cx="32" cy="32" r="30" fill="var(--pie-fill)"/>`:share>0?`<path d="M32 32 L32 2 A30 30 0 ${ang>Math.PI?1:0} 1 ${x.toFixed(2)} ${y.toFixed(2)} Z" fill="var(--pie-fill)"/>`:'');
