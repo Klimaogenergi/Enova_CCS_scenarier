@@ -192,7 +192,7 @@ footer a{color:var(--accent)}
         <div class="kpi" id="kpi-rest"><span class="eyebrow" id="k-rest-l">Til overs</span><span class="v" id="k-rest"></span><span class="u">mrd kr mot rammen</span></div>
         <div class="kpi"><span class="eyebrow">CO<sub>2</sub> fanget årlig</span><span class="v" id="k-cap"></span><span class="u" id="k-cap-u"></span></div>
         <div class="kpi"><span class="eyebrow">CCS-potensial ifølge Miljødirektoratet</span><span class="v" id="k-pot"></span><span class="u">tonn CO₂ per år i 2035</span></div>
-        <div class="kpi"><span class="eyebrow">Andel av potensialet</span><div class="pie"><svg id="k-pie" viewBox="0 0 64 64" width="64" height="64" role="img"></svg><span class="v" id="k-share"></span></div><span class="u">fanget CO₂ som andel av CCS-potensialet</span></div>
+        <div class="kpi"><span class="eyebrow">Andel av utslippene</span><div class="pie"><svg id="k-pie" viewBox="0 0 64 64" width="64" height="64" role="img"></svg><span class="v" id="k-share"></span></div><span class="u">fanget CO₂ som andel av utslippene fra anleggene i nedtrekkslisten (<span id="k-emis"></span> t)</span></div>
       </section>
 
       <section class="panel chart">
@@ -245,7 +245,10 @@ const EMBEDDED_BIO = "UEsDBBQAAAAIAOhwRV1gUqpxAQEAAMoBAAAPABwAeGwvd29ya2Jvb2sueG
 const BIO_NAME = "Utslipp_Bio_co2_2023.xlsx";
 const POTENTIAL_T = 5793000; // CCS-potensial ifølge Miljødirektoratet (tiltaksark I01, 2026), tonn CO₂ per år i 2035
 const MIN_ADD_T = 25000; // anlegg under dette (tonn fossilt CO₂) vises ikke i nedtrekkslisten
-const EXCLUDE_ADD = [/heidelberg.*brevik/i]; // har allerede fått CCS-støtte, vises ikke i nedtrekkslisten
+const EXCLUDE_ADD = [/heidelberg.*brevik/i, /haraldrud/i]; // vises ikke i nedtrekkslisten (Brevik har allerede fått CCS-støtte)
+const inAddList = t => t.tonn>=MIN_ADD_T && !EXCLUDE_ADD.some(r=>r.test(t.name));
+// Sum utslipp (fossilt + rapportert biogent) fra alle anleggene i nedtrekkslisten, nevneren i kakediagrammet
+const listEmis = () => data ? data.top.filter(inAddList).reduce((s,t)=>s+t.tonn+(BIO?BIO.map.get(norm(t.name))||0:0),0) : 0;
 const BIO_YEAR = 2023; // samme år som de fossile tallene
 
 const nf0 = new Intl.NumberFormat('nb-NO',{maximumFractionDigits:0});
@@ -410,10 +413,11 @@ function render(){
   $('k-cap').textContent=nf0.format(capIn);
   $('k-cap-u').textContent=nIn===nAll?'tonn per år':`tonn per år fra anleggene som får plass (${nf0.format(R.captured)} t for alle valgte)`;
   $('k-pot').textContent=nf0.format(POTENTIAL_T);
-  const share=Math.min(capIn/POTENTIAL_T,1);
+  const emis=listEmis(), share=emis>0?Math.min(capIn/emis,1):0;
+  $('k-emis').textContent=nf0.format(emis);
   $('k-share').textContent=nf0.format(Math.round(share*100))+' %';
   const ang=share*2*Math.PI, x=32+30*Math.sin(ang), y=32-30*Math.cos(ang);
-  $('k-pie').setAttribute('aria-label',`${nf1.format(share*100)} prosent av CCS-potensialet`);
+  $('k-pie').setAttribute('aria-label',`${nf1.format(share*100)} prosent av utslippene fra anleggene i nedtrekkslisten`);
   $('k-pie').innerHTML=`<circle cx="32" cy="32" r="30" fill="var(--pie-rest)"/>`+(share>=0.9999?`<circle cx="32" cy="32" r="30" fill="var(--pie-fill)"/>`:share>0?`<path d="M32 32 L32 2 A30 30 0 ${ang>Math.PI?1:0} 1 ${x.toFixed(2)} ${y.toFixed(2)} Z" fill="var(--pie-fill)"/>`:'');
 
   // tabell
@@ -510,7 +514,7 @@ function fillAdd(){
   const sel=$('addsel'), cur=sel.value;
   const have=new Set(S.plants.map(p=>p.fossil));
   const used=new Set(S.plants.filter(p=>!p.fromFile).map(p=>p.name));
-  sel.innerHTML=data.top.map((t,i)=>{ if(t.tonn<MIN_ADD_T||EXCLUDE_ADD.some(r=>r.test(t.name))) return ''; const dup=used.has(t.name)||have.has(t.tonn);
+  sel.innerHTML=data.top.map((t,i)=>{ if(!inAddList(t)) return ''; const dup=used.has(t.name)||have.has(t.tonn);
     return `<option value="${i}" ${dup?'disabled':''}>${esc(t.name)} · ${esc(t.sector)}${t.sub?' / '+esc(t.sub):''} · ${nf0.format(t.tonn)} t${dup?' (med)':''}</option>`; }).join('');
   if(cur) sel.value=cur;
 }
