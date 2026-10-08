@@ -239,7 +239,7 @@ const EMBEDDED_BIO = "UEsDBBQAAAAIAOhwRV1gUqpxAQEAAMoBAAAPABwAeGwvd29ya2Jvb2sueG
 const BIO_NAME = "Utslipp_Bio_co2_2023.xlsx";
 const POTENTIAL_T = 5793000; // CCS-potensial ifølge Miljødirektoratet (tiltaksark I01, 2026), tonn CO₂ per år i 2035
 const MIN_ADD_T = 25000; // anlegg under dette (tonn fossilt CO₂) vises ikke i anleggslisten
-const EXCLUDE_ADD = [/heidelberg.*brevik/i, /haraldrud/i]; // vises ikke i anleggslisten (Brevik har allerede fått CCS-støtte)
+const EXCLUDE_ADD = [/heidelberg.*brevik/i, /haraldrud/i, /hafslund\s*celsio/i]; // vises ikke i anleggslisten (Brevik og Klemetsrud/Hafslund Celsio har allerede fått CCS-støtte)
 const inAddList = t => t.tonn>=MIN_ADD_T && !EXCLUDE_ADD.some(r=>r.test(t.name));
 const BIO_YEAR = 2023; // samme år som de fossile tallene
 
