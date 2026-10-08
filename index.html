@@ -91,8 +91,13 @@ th{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transfor
 td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
 td.name{white-space:normal;min-width:160px}
 th{white-space:normal}
-td.name small{display:block;color:var(--muted);font-size:.75rem}
-tr.off td{opacity:.45}
+td.name small{display:block;color:var(--muted);font-size:.75rem;font-weight:400}
+tr.off td.num{color:var(--muted)}
+tr:not(.off):not(.grp) td.name{font-weight:600}
+tr:not(.off):not(.grp) td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+#tbl input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;vertical-align:middle}
+tr.grp td{text-align:left;font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--bg);padding:9px 6px 7px;white-space:normal}
+tr.grp td span{text-transform:none;letter-spacing:0;font-family:var(--f-body);font-weight:400;color:var(--muted);margin-left:8px}
 tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--ink)}
 td input[type=number]{width:62px;text-align:right}
 td input[id^=bo-],tfoot td.bio{color:var(--biotxt)}
@@ -414,7 +419,10 @@ function render(){
 
   // tabell
   const tb=$('tbl').tBodies[0]; tb.innerHTML='';
+  const grp=(t,h)=>{ const g=document.createElement('tr'); g.className='grp'; g.innerHTML=`<td colspan="9">${t}<span>${h}</span></td>`; tb.appendChild(g); };
+  let lastFile=null;
   for(const r of R.rows){
+    if(r.fromFile!==lastFile){ lastFile=r.fromFile; r.fromFile?grp('Avfallsforbrenning','fra regnearket, med som standard'):grp('Andre store utslippere','kryss av for å ta med'); }
     const tr=document.createElement('tr'); if(!r.on)tr.className='off';
     tr.innerHTML=`<td><input type="checkbox" id="on-${r.id}" ${r.on?'checked':''} aria-label="Ta med ${esc(r.name)}"></td>
       <td class="name">${esc(r.name)}<small>${esc(r.sector)}${r.sub?' / '+esc(r.sub):''}${r.fromFile?' · celle '+r.ref:''}</small></td>
