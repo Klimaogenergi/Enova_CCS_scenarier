@@ -132,7 +132,7 @@ footer a{color:var(--accent)}
       <h2>Forutsetninger</h2>
       <h3 class="group">Støtte</h3>
       <div class="field">
-        <label for="p-price">Budpris <span class="src" id="s-price"></span></label>
+        <label for="p-price">Budpris</label>
         <div class="row"><input type="range" id="r-price" min="500" max="4000" step="50"><input type="number" id="p-price" step="50"></div>
         <p class="hint">kr per tonn lagret CO₂. Anslått spenn 1 200–2 500. Kan settes per anlegg i tabellen.</p>
       </div>
@@ -144,11 +144,11 @@ footer a{color:var(--accent)}
         </div>
       </div>
       <div class="field">
-        <label for="p-years">År med driftsstøtte <span class="src" id="s-years"></span></label>
+        <label for="p-years">År med driftsstøtte</label>
         <div class="row"><input type="range" id="r-years" min="1" max="20" step="1"><input type="number" id="p-years" step="1"></div>
       </div>
       <div class="field">
-        <label for="p-budget">Enova-ramme <span class="src" id="s-budget"></span></label>
+        <label for="p-budget">Enova-ramme</label>
         <div class="row"><input type="range" id="r-budget" min="0" max="100" step="0.5"><input type="number" id="p-budget" step="0.5"></div>
         <p class="hint">mrd kr i tilsagn, <span id="windowtxt"></span></p>
       </div>
@@ -179,7 +179,7 @@ footer a{color:var(--accent)}
       </div>
       <h3 class="group">Anlegg og fangst</h3>
       <div class="field">
-        <label for="p-capture">Fangstgrad <span class="src" id="s-capture"></span></label>
+        <label for="p-capture">Fangstgrad</label>
         <div class="row"><input type="range" id="r-capture" min="50" max="99" step="1"><input type="number" id="p-capture" step="1"></div>
         <p class="hint">% av CO₂ i røykgassen</p>
       </div>
@@ -369,10 +369,6 @@ function syncInputs(){
   for(const k of ['price','capture','years','budget','vedtak','build','upfront']){ $('p-'+k).value=S[k]; $('r-'+k).value=S[k]; }
   $('p-order').value=S.order; $('reshuffle').hidden=S.order!=='rand';
   $('b-all').setAttribute('aria-pressed',S.basis==='all'); $('b-fos').setAttribute('aria-pressed',S.basis==='fossil');
-  const r=data.refs, pr=data.params;
-  const lab=(k,txt)=>{$('s-'+k).textContent='standard '+txt;};
-  $('s-price').textContent='standard 2 000'; lab('capture',nf0.format(pr.capture*100)+' %');
-  lab('years',pr.years); $('s-budget').textContent='standard 4 mrd';
   $('windowtxt').textContent='rammeperiode '+data.win[0]+'–'+data.win[1];
 }
 
