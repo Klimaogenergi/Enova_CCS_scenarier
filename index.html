@@ -94,6 +94,7 @@ td.name small{display:block;color:var(--muted);font-size:.75rem;font-weight:400}
 tr.off td.num{color:var(--muted)}
 tr:not(.off):not(.grp) td.name{font-weight:600}
 tr:not(.off):not(.grp) td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+#tbl thead th:first-child{vertical-align:bottom}
 #tbl input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;vertical-align:middle}
 tr.grp td{text-align:left;font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--bg);padding:9px 6px 7px;white-space:normal}
 tr.grp td span{text-transform:none;letter-spacing:0;font-family:var(--f-body);font-weight:400;color:var(--muted);margin-left:8px}
@@ -217,7 +218,7 @@ footer a{color:var(--accent)}
         <div class="tablewrap">
           <table id="tbl">
             <thead><tr>
-              <th></th><th>Anlegg</th><th>Fossilt, anslag</th><th id="th-bio" class="biocol">Biogent, 2023</th><th>Budpris kr/t</th><th>Vedtaksår</th><th>Totalt</th><th>Fanget</th><th>Støttebehov mrd</th>
+              <th><input type="checkbox" id="allon" aria-label="Velg alle anlegg" title="Velg alle anlegg"></th><th>Anlegg</th><th>Fossilt, anslag</th><th id="th-bio" class="biocol">Biogent, 2023</th><th>Budpris kr/t</th><th>Vedtaksår</th><th>Totalt</th><th>Fanget</th><th>Støttebehov mrd</th>
             </tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
@@ -433,6 +434,10 @@ function render(){
   }
   $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num bio biocol">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td></tr>`;
 
+  const nOn=R.rows.filter(r=>r.on).length, all=$('allon');
+  all.checked=nOn===R.rows.length&&nOn>0; all.indeterminate=nOn>0&&nOn<R.rows.length;
+  all.title=all.checked?'Fjern alle avkrysninger':'Velg alle anlegg';
+
   drawBar(R); drawPay(R);
 }
 
@@ -521,6 +526,7 @@ $('b-fos').addEventListener('click',()=>{S.basis='fossil';syncInputs();render();
 $('reset').addEventListener('click',()=>{initState(data);syncInputs();render();});
 $('tbl').addEventListener('change',e=>{
   const id=e.target.id;
+  if(id==='allon'){ for(const p of S.plants) p.on=e.target.checked; render(); return; }
   if(id.startsWith('on-')){ const p=S.plants.find(p=>p.id===id.slice(3)); p.on=e.target.checked; render(); }
   if(id.startsWith('vd-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseInt(e.target.value,10); p.vd=(isNaN(v)||v===S.vedtak)?null:Math.min(2040,Math.max(2025,v)); render(); }
   if(id.startsWith('pr-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.pr=(isNaN(v)||v===S.price)?null:Math.max(0,v); render(); }
