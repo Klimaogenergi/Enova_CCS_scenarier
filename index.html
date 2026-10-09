@@ -189,7 +189,7 @@ footer a{color:var(--accent)}
       <div class="field">
         <label for="p-capture">Fangstgrad</label>
         <div class="row"><input type="range" id="r-capture" min="50" max="99" step="1"><input type="number" id="p-capture" step="1"></div>
-        <p class="hint">% av CO₂ i røykgassen</p>
+        <p class="hint">% av CO₂ i røykgassen. Kan settes per anlegg i tabellen.</p>
       </div>
       <button type="button" class="btn" id="reset">Tilbakestill alt</button>
     </aside>
@@ -222,13 +222,13 @@ footer a{color:var(--accent)}
         <div class="tablewrap">
           <table id="tbl">
             <thead><tr>
-              <th><input type="checkbox" id="allon" aria-label="Velg alle anlegg" title="Velg alle anlegg"></th><th>Anlegg</th><th>Fossilt, anslag</th><th id="th-bio" class="biocol">Biogent, 2023</th><th>Budpris kr/t</th><th>Vedtaksår</th><th>Totalt</th><th>Fanget</th><th>Støttebehov mrd</th>
+              <th><input type="checkbox" id="allon" aria-label="Velg alle anlegg" title="Velg alle anlegg"></th><th>Anlegg</th><th>Fossilt, anslag</th><th id="th-bio" class="biocol">Biogent, 2023</th><th>Budpris kr/t</th><th>Vedtaksår</th><th>Totalt</th><th>Fangstgrad %</th><th>Fanget</th><th>Støttebehov mrd</th>
             </tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
           </table>
         </div>
-        <p class="hint">Vedtaksår per anlegg følger det felles vedtaksåret til du endrer det. Fossilt og biogent CO₂ er tall virksomhetene har rapportert til Miljødirektoratet (norskeutslipp.no). Biogent CO₂ følger det rapporterte tallet når det finnes. Avfallsanlegg uten rapportert tall får et anslag ut fra fossil andel i regnearket. Andre anlegg uten tall regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake.</p>
+        <p class="hint">Budpris, vedtaksår og fangstgrad per anlegg følger verdiene i Forutsetninger til du endrer dem. Fossilt og biogent CO₂ er tall virksomhetene har rapportert til Miljødirektoratet (norskeutslipp.no). Biogent CO₂ følger det rapporterte tallet når det finnes. Avfallsanlegg uten rapportert tall får et anslag ut fra fossil andel i regnearket. Andre anlegg uten tall regnes som 0 (stiplet felt) til du legger inn et tall. Felt du har endret, er uthevet. Tøm et felt for å gå tilbake.</p>
       </section>
 
     </main>
@@ -377,8 +377,8 @@ function syncInputs(){
 
 /* ---------- Beregning ---------- */
 function compute(st){
-  const cap=st.capture/100;
   const rows=st.plants.map((p,i)=>{
+    const capPct=p.cg??st.capture, cap=capPct/100;
     const fs=st.fossil/100, fossil=p.fo??p.fossil, waste=p.sector==='Avfall';
     const br=bioRep(p), bioEst=waste&&fs>0?fossil*(1-fs)/fs:0, bio=p.bo??br??bioEst;
     const bioSrc=p.bo!=null?'own':br!=null?'rep':waste?'est':'unk';
@@ -387,7 +387,7 @@ function compute(st){
     const basisT=captured;
     const price=p.pr??st.price;
     const annual=basisT*price, need=annual*st.years;
-    return {...p,fossilFile:p.fossil,fossil,br,bio,bioSrc,waste,price,total,captured,fosCap,basisT,annual,need,idx:i};
+    return {...p,fossilFile:p.fossil,fossil,br,bio,bioSrc,waste,price,capPct,total,captured,fosCap,basisT,annual,need,idx:i};
   });
   const on=rows.filter(r=>r.on);
   const ordered=[...on].sort((a,b)=>st.order==='rand'?(a.rnd??1)-(b.rnd??1):st.order==='file'?a.idx-b.idx:st.order==='asc'?a.total-b.total:b.total-a.total);
@@ -420,7 +420,7 @@ function render(){
 
   // tabell
   const tb=$('tbl').tBodies[0]; tb.innerHTML='';
-  const grp=(t,h)=>{ const g=document.createElement('tr'); g.className='grp'; g.innerHTML=`<td colspan="9">${t}<span>${h}</span></td>`; tb.appendChild(g); };
+  const grp=(t,h)=>{ const g=document.createElement('tr'); g.className='grp'; g.innerHTML=`<td colspan="10">${t}<span>${h}</span></td>`; tb.appendChild(g); };
   let lastFile=null;
   for(const r of R.rows){
     if(r.fromFile!==lastFile){ lastFile=r.fromFile; r.fromFile?grp('Avfallsforbrenning','fra regnearket, med som standard'):grp('Andre store utslippere','kryss av for å ta med'); }
@@ -432,11 +432,12 @@ function render(){
       <td><input type="number" class="${r.pr!=null?'own':''}" id="pr-${r.id}" min="0" step="50" value="${Math.round(r.price)}" title="${r.pr!=null?'Egen budpris. Tøm feltet for å følge felles budpris.':'Følger felles budpris'}" aria-label="Budpris for ${esc(r.name)}"></td>
       <td><input type="number" class="${r.vd!=null?'own':''}" id="vd-${r.id}" min="2025" max="2040" step="1" value="${r.vd??S.vedtak}" title="${r.vd!=null?'Eget vedtaksår. Tøm feltet for å følge felles vedtaksår.':'Følger felles vedtaksår'}" aria-label="Vedtaksår for ${esc(r.name)}"></td>
       <td class="num">${nf0.format(r.total)}</td>
+      <td><input type="number" class="${r.cg!=null?'own':''}" id="cg-${r.id}" min="0" max="100" step="1" value="${r.capPct}" title="${r.cg!=null?'Egen fangstgrad. Tøm feltet for å følge felles fangstgrad.':'Følger felles fangstgrad'}" aria-label="Fangstgrad for ${esc(r.name)}"></td>
       <td class="num">${nf0.format(r.captured)}</td>
       <td class="num">${r.on?nf2.format(r.need/1e9):'–'}</td>`;
     tb.appendChild(tr);
   }
-  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num bio biocol">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td></tr>`;
+  $('tbl').tFoot.innerHTML=`<tr><td></td><td>Sum valgte anlegg</td><td class="num">${nf0.format(R.fossil)}</td><td class="num bio biocol">${nf0.format(R.bio)}</td><td class="num">${nf0.format(R.avgPrice)}</td><td></td><td class="num">${nf0.format(R.total)}</td><td></td><td class="num">${nf0.format(R.captured)}</td><td class="num">${nf2.format(R.need/1e9)}</td></tr>`;
 
   const nOn=R.rows.filter(r=>r.on).length, all=$('allon');
   all.checked=nOn===R.rows.length&&nOn>0; all.indeterminate=nOn>0&&nOn<R.rows.length;
@@ -533,6 +534,7 @@ $('tbl').addEventListener('change',e=>{
   if(id==='allon'){ for(const p of S.plants) p.on=e.target.checked; render(); return; }
   if(id.startsWith('on-')){ const p=S.plants.find(p=>p.id===id.slice(3)); p.on=e.target.checked; render(); }
   if(id.startsWith('vd-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseInt(e.target.value,10); p.vd=(isNaN(v)||v===S.vedtak)?null:Math.min(2040,Math.max(2025,v)); render(); }
+  if(id.startsWith('cg-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.cg=(isNaN(v)||v===S.capture)?null:Math.min(100,Math.max(0,v)); render(); }
   if(id.startsWith('pr-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.pr=(isNaN(v)||v===S.price)?null:Math.max(0,v); render(); }
   if(id.startsWith('fo-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value); p.fo=(isNaN(v)||v===p.fossil)?null:Math.max(0,v); render(); }
   if(id.startsWith('bo-')){ const p=S.plants.find(p=>p.id===id.slice(3)); const v=parseFloat(e.target.value), br=bioRep(p); p.bo=(isNaN(v)||(br!=null&&v===Math.round(br)))?null:Math.max(0,v); render(); }
