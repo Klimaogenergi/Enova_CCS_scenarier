@@ -40,6 +40,8 @@ h2{font-size:1.1rem;font-weight:600}
 header{background:var(--hdr-bg);color:var(--hdr-ink);border-radius:6px;padding:20px 22px}
 header .eyebrow{color:var(--hdr-eyebrow)}
 header .lede{color:var(--hdr-muted)}
+header .lede+.lede{margin-top:8px}
+header a{color:var(--hdr-ink);text-decoration:underline;text-underline-offset:2px}
 .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
 .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
@@ -128,7 +130,9 @@ footer a{color:var(--accent)}
 <div class="wrap">
   <header>
     <h1>Budsjettkalkulator for CCS (Beta)</h1>
-    <p class="lede">Hva koster det staten å støtte CO₂-fangst og -lagring? Justér forutsetningene til venstre, og legg til/fjern anlegg lenger ned på siden.</p>
+    <p class="lede">Hva vil det koste staten å støtte CO₂-fangst og -lagring? Justér forutsetningene til venstre, og legg til/fjern anlegg lenger ned på siden.</p>
+    <p class="lede">Utslippstall i oversikten er fra 2023. Reelle CCS-kostnader per tonn vil variere mellom anleggene.</p>
+    <p class="lede">Kontakt: <a href="mailto:olav@bellona.no">olav@bellona.no</a></p>
   </header>
 
   <div class="grid">
