@@ -211,10 +211,10 @@ footer a{color:var(--accent)}
       <section class="panel chart">
         <div class="sectionhead"><h2>Utbetalinger per år</h2><span class="status" id="payline"></span></div>
         <div id="paychart"></div>
-        <div class="legend"><span><i style="background:var(--c-build)"></i>Byggefase</span><span><i style="background:var(--c-ops)"></i>Drift (betales året etter lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
+        <div class="legend"><span><i style="background:var(--c-build)"></i>Byggefase</span><span><i style="background:var(--c-ops)"></i>Drift (betales samme år som lagring)</span><span><i style="background:var(--window);border:1px solid var(--line)"></i>Rammeperiode</span></div>
         <div class="tablewrap"><table class="yeartbl" id="yeartbl"></table></div>
         <div class="addrow"><button type="button" class="btn" id="copytbl">Kopier tabellen</button><span class="status" id="copystatus"></span></div>
-        <p class="hint">Bare anlegg som får plass innenfor rammen er med. Byggeandelen fordeles jevnt over byggeårene. Resten betales per tonn året etter lagring, i tråd med høringsnotatet (kap. 9.2). Notatets tak på 50 % av investeringskostnaden er ikke med.</p>
+        <p class="hint">Bare anlegg som får plass innenfor rammen er med. Byggeandelen fordeles jevnt over byggeårene. Resten betales per tonn samme år som CO₂-en lagres. Høringsnotatet (kap. 9.2) legger opp til utbetaling året etter. Notatets tak på 50 % av investeringskostnaden er ikke med.</p>
       </section>
 
       <section class="panel">
@@ -470,11 +470,11 @@ function payProfile(R){
   const up=S.upfront/100, nb=Math.max(1,S.build);
   const build={}, ops={}; let b0=Infinity, lastPay=-Infinity;
   for(const r of R.ordered.filter(r=>r.status==='in')){
-    const v=r.vd??S.vedtak, op0=v+nb; b0=Math.min(b0,v); lastPay=Math.max(lastPay,op0+S.years);
+    const v=r.vd??S.vedtak, op0=v+nb; b0=Math.min(b0,v); lastPay=Math.max(lastPay,op0+S.years-1);
     for(let k=0;k<nb;k++) build[v+k]=(build[v+k]||0)+r.need*up/nb;
-    for(let k=0;k<S.years;k++) ops[op0+k+1]=(ops[op0+k+1]||0)+r.need*(1-up)/S.years;
+    for(let k=0;k<S.years;k++) ops[op0+k]=(ops[op0+k]||0)+r.need*(1-up)/S.years;
   }
-  if(!isFinite(b0)){ b0=S.vedtak; lastPay=S.vedtak+nb+S.years; }
+  if(!isFinite(b0)){ b0=S.vedtak; lastPay=S.vedtak+nb+S.years-1; }
   const first=Math.min(data.win[0],b0), last=Math.max(data.win[1],lastPay);
   const yrs=[]; for(let y=first;y<=last;y++) yrs.push(y);
   const tot_=y=>(build[y]||0)+(ops[y]||0);
