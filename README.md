@@ -1,4 +1,4 @@
-# Budsjettkalkulator for CO₂-fangst og -lagring (Beta)
+# Budsjettkalkulator for CO₂-fangst og -lagring (beta)
 
 Et nettverktøy som viser hvor mye karbonfangst og -lagring (CCS) Enovas foreslåtte ramme kan finansiere, med justerbare forutsetninger. Første versjon dekker avfallsforbrenning.
 
