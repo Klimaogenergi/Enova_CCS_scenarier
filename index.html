@@ -373,7 +373,7 @@ let data=null, S=null;
 function initState(d){
   const p=d.params;
   S={
-    price:2000, fossil:Math.round((p.fossil??0.45)*100), capture:Math.round((p.capture??0.9)*100),
+    price:2500, fossil:Math.round((p.fossil??0.45)*100), capture:Math.round((p.capture??0.9)*100),
     years:p.years??10, budget:4, enova:15, basis:'all', vedtak:S?S.vedtak:2027, build:S?S.build:4, upfront:S?S.upfront:40, order:S?S.order:'rand',
     plants:d.plants.map((x,i)=>({...x,id:'f'+i,on:true,fo:null,bo:null,fromFile:true,rnd:Math.random()}))
   };
